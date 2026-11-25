@@ -1,0 +1,77 @@
+{
+    "capturedAt": "2026-11-25T00:55:09-03:00",
+    "expectedMode": "MONITOR",
+    "detectedMode": "MONITOR",
+    "detectedDesign": "LENTO",
+    "resource": "USB0::0x1AB1::0x0517::DS1ZE275014864::0::INSTR",
+    "serialPort": "COM4",
+    "baudRate": 57600.0,
+    "scopeState": "STOP",
+    "scopeFinished": true,
+    "originalScopeImage": "pantalla_rigol_original.png",
+    "forcedTrigger": true,
+    "stateBeforeForce": "WAIT",
+    "scopeConfiguration": {
+        "time_s_div": 0.1,
+        "ch1_V_div": 0.05,
+        "ch2_V_div": 0.02,
+        "trigger_V": 0.2,
+        "acquisition": "HRES",
+        "armDelay_s": 2.25,
+        "rearmTime_s": 3.5,
+        "forceTime_s": 3.6
+    },
+    "uart": {
+        "rows": 600.0,
+        "nonzeroFlags": 0.0,
+        "maxCpu_us": 52.0,
+        "medianPeriod_us": 2000.0,
+        "minPeriod_us": 1999.0,
+        "maxPeriod_us": 2001.0,
+        "yRelativeMean_mV": -0.25666666666666665,
+        "yRelativeStd_mV": 1.884154705381676,
+        "yRelativePeakAbs_mV": 11.0,
+        "uNominalPeakAbs_mV": 0.0,
+        "dacPositivePeak": 0.0,
+        "dacNegativePeak": 0.0
+    },
+    "traceStatistics": {
+        "CH1": {
+            "points": 1200.0,
+            "mean_mV": 15.923333333333257,
+            "std_mV": 3.575580540610283,
+            "p05_mV": 12.0,
+            "p95_mV": 20.0,
+            "robustSpan_mV": 8.0,
+            "duration_s": 1.199
+        },
+        "CH2": {
+            "points": 1200.0,
+            "mean_mV": 11.383333333333335,
+            "std_mV": 12.034622927747515,
+            "p05_mV": -3.2,
+            "p95_mV": 26.4,
+            "robustSpan_mV": 29.6,
+            "duration_s": 1.199
+        }
+    },
+    "waveformDetails": {
+        "CH1": {
+            "points": 1200.0,
+            "xIncrement_s": 0.001,
+            "xOrigin_s": -0.6,
+            "yIncrement_V": 0.002,
+            "yOrigin": 0.0,
+            "yReference": 127.0
+        },
+        "CH2": {
+            "points": 1200.0,
+            "xIncrement_s": 0.001,
+            "xOrigin_s": -0.6,
+            "yIncrement_V": 0.0008,
+            "yOrigin": 0.0,
+            "yReference": 127.0
+        }
+    },
+    "preliminaryValid": true
+}

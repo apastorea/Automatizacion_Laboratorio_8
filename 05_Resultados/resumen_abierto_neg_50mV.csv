@@ -1,0 +1,2 @@
+captured_at,u_requested_mV,u_nominal_mV,delta_J5_scope_mV,y_late_uart_mV,delta_J7_scope_mV,gain_uart,gain_scope,rise_time_uart_ms,pulse_samples,period_median_us,period_min_us,period_max_us,cpu_max_us,nonzero_flags,valid
+2026-11-25T01:32:33-03:00,-50,-53,-54,-49,-42.4,0.924528301886792,0.785185185185185,24.001,96,2000,1999,2001,59,0,1

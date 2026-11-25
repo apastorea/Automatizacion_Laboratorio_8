@@ -1,0 +1,76 @@
+{
+    "capturedAt": "2026-11-25T02:08:46-03:00",
+    "expectedMode": "INTEGRAL",
+    "detectedMode": "INTEGRAL",
+    "expectedDesign": "RAPIDO",
+    "detectedDesign": "RAPIDO",
+    "resource": "USB0::0x1AB1::0x0517::DS1ZE275014864::0::INSTR",
+    "serialPort": "COM4",
+    "baudRate": 57600.0,
+    "scopeState": "STOP",
+    "scopeFinished": true,
+    "originalScopeImage": "pantalla_rigol_original.png",
+    "forcedTrigger": true,
+    "stateBeforeForce": "WAIT",
+    "scopeConfiguration": {
+        "time_s_div": 0.2,
+        "ch1_V_div": 0.05,
+        "ch2_V_div": 0.02,
+        "triggerSlope": "POS",
+        "trigger_V": 0.01,
+        "acquisition": "HRES",
+        "armDelay_s": 2.75,
+        "forceTime_s": 4.35
+    },
+    "uart": {
+        "rows": 600.0,
+        "fatalFlagSamples": 0.0,
+        "saturationSamples": 0.0,
+        "antiwindupSamples": 0.0,
+        "maxCpu_us": 117.0,
+        "medianPeriod_us": 2000.0,
+        "minPeriod_us": 1999.0,
+        "maxPeriod_us": 2001.0,
+        "referenceSamples": 301.0,
+        "steadyY_mV": 48.0,
+        "postReturnY_mV": -1.0,
+        "maxAbsY_mV": 59.0,
+        "maxRequested_mV": 75.0,
+        "minRequested_mV": -30.0,
+        "maxNominal_mV": 77.0,
+        "minNominal_mV": -32.0
+    },
+    "scope": {
+        "baselineCH1_mV": 14.0,
+        "baselineCH2_mV": 10.0,
+        "deltaCH2_mV": 47.199999999999996,
+        "returnCH2_mV": -2.0,
+        "maxCH1Increment_mV": 68.0,
+        "minCH1Increment_mV": -32.0
+    },
+    "waveformDetails": {
+        "CH1": {
+            "points": 1200.0,
+            "xIncrement_s": 0.002,
+            "xOrigin_s": -1.2,
+            "yIncrement_V": 0.002,
+            "yOrigin": 0.0,
+            "yReference": 127.0
+        },
+        "CH2": {
+            "points": 1200.0,
+            "xIncrement_s": 0.002,
+            "xOrigin_s": -1.2,
+            "yIncrement_V": 0.0008,
+            "yOrigin": 0.0,
+            "yReference": 127.0
+        }
+    },
+    "checks": {
+        "modeMatches": true,
+        "timingValid": true,
+        "responseValid": true,
+        "scopeValid": true
+    },
+    "preliminaryValid": true
+}

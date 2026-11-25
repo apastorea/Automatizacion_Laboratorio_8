@@ -1,0 +1,26 @@
+# Caché generada por Simulink
+01_Modelado_MATLAB/slprj/
+01_Modelado_MATLAB/*.slxc
+
+# Auxiliares de compilación LaTeX; el PDF final sí se conserva
+06_Informe_IEEE/Informe_Lab8/*.aux
+06_Informe_IEEE/Informe_Lab8/*.log
+06_Informe_IEEE/Informe_Lab8/*.out
+06_Informe_IEEE/Informe_Lab8/*.synctex.gz
+06_Informe_IEEE/Informe_Lab8/*.fls
+06_Informe_IEEE/Informe_Lab8/*.fdb_latexmk
+06_Informe_IEEE/Informe_Lab8/main.pdf
+06_Informe_IEEE/Informe_Lab8/Informe_Laboratorio_8.pdf
+
+# Material temporal y documentos de consulta que no forman parte del entregable
+tmp/
+/*.pdf
+!/lab8_Control_Integral.pdf
+/diagrama_*.PNG
+
+# Preferencias locales de PSoC Creator
+*.aldop
+
+# Intentos incompletos sin adquisición válida
+04_Ensayos/Capturas_Sincronizadas/20261125_005107_615_monitor_lab8/
+04_Ensayos/Capturas_Sincronizadas/20261125_020632_257_integral_rapido/

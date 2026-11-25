@@ -1,0 +1,21 @@
+{
+  "local_capture": "2026-11-25T00:47:12-03:00",
+  "expected_mode": "MONITOR",
+  "port": "COM4",
+  "baud": 57600,
+  "scope_configuration": {
+    "ch1_V_div": 0.05,
+    "ch2_V_div": 0.02,
+    "time_s_div": 0.1,
+    "trigger_V": 0.2,
+    "acquisition": "HRES",
+    "trigger_source": "CHAN1",
+    "trigger_sweep": "NORM",
+    "arm_delay_s": 2.25,
+    "rearm_time_s": 3.5,
+    "force_time_s": 3.6
+  },
+  "firmware_expected_rows": 600,
+  "firmware_start_delay_ms": 3000,
+  "error": "VI_ERROR_INV_OBJECT (-1073807346): The given session or object reference is invalid."
+}

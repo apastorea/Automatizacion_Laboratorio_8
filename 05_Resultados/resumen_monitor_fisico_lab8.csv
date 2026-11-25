@@ -1,0 +1,19 @@
+metrica,valor,unidad,criterio,estado
+Filas UART,600,muestras,= 600,OK
+Media de y relativa,-0.256666666666667,mV,informativo,INFO
+Desviación de y relativa,1.88415470538168,mV,informativo,INFO
+Pico absoluto de y relativa,11,mV,informativo,INFO
+Tiempo CPU mediano,49,us,informativo,INFO
+Tiempo CPU máximo,52,us,< 2000,OK
+Período mediano,2000,us,= 2000,OK
+Período mínimo,1999,us,informativo,INFO
+Período máximo,2001,us,informativo,INFO
+Jitter pico respecto de 2 ms,1,us,<= 5,OK
+Flags no nulos,0,conteo,= 0,OK
+Pico del mando nominal,0,mV,= 0,OK
+Pico DAC positivo,0,código,= 0,OK
+Pico DAC negativo,0,código,= 0,OK
+Media CH1 RIGOL,15.9233333333333,mV,informativo,INFO
+Desviación CH1 RIGOL,3.57558054061028,mV,informativo,INFO
+Media CH2 RIGOL,11.3833333333333,mV,informativo,INFO
+Desviación CH2 RIGOL,12.0346229277475,mV,informativo,INFO

@@ -1,0 +1,79 @@
+{
+    "capturedAt": "2026-11-25T01:32:33-03:00",
+    "expectedMode": "ABIERTO",
+    "detectedMode": "ABIERTO",
+    "detectedDesign": "LENTO",
+    "expectedStep_mV": -50.0,
+    "detectedStep_mV": -50.0,
+    "resource": "USB0::0x1AB1::0x0517::DS1ZE275014864::0::INSTR",
+    "serialPort": "COM4",
+    "baudRate": 57600.0,
+    "scopeState": "STOP",
+    "scopeFinished": true,
+    "originalScopeImage": "pantalla_rigol_original.png",
+    "forcedTrigger": true,
+    "stateBeforeForce": "WAIT",
+    "scopeConfiguration": {
+        "time_s_div": 0.05,
+        "ch1_V_div": 0.02,
+        "ch2_V_div": 0.02,
+        "triggerSlope": "NEG",
+        "trigger_V": -0.01,
+        "acquisition": "HRES",
+        "armDelay_s": 2.75,
+        "forceTime_s": 3.45
+    },
+    "uart": {
+        "rows": 600.0,
+        "nonzeroFlags": 0.0,
+        "maxCpu_us": 59.0,
+        "medianPeriod_us": 2000.0,
+        "minPeriod_us": 1999.0,
+        "maxPeriod_us": 2001.0,
+        "pulseSamples": 96.0,
+        "requestedPulseMedian_mV": -50.0,
+        "nominalPulseMedian_mV": -53.0,
+        "deltaYLatePulse_mV": -49.0,
+        "dacPositivePeak": 0.0,
+        "dacNegativePeak": 5.0
+    },
+    "scope": {
+        "baselineCH1_mV": 17.2,
+        "baselineCH2_mV": 10.400000000000002,
+        "responseCH1_mV": -36.8,
+        "responseCH2_mV": -32.0,
+        "deltaCH1_mV": -54.0,
+        "deltaCH2_mV": -42.4,
+        "gainCH2overCH1": 0.7851851851851852,
+        "pulseStart_s": -0.0915,
+        "pulseEnd_s": 0.10100000000000003,
+        "pulseVisible_s": 0.19250000000000003,
+        "responsePoints": 386.0,
+        "expectedSign": -1.0
+    },
+    "waveformDetails": {
+        "CH1": {
+            "points": 1200.0,
+            "xIncrement_s": 0.0005,
+            "xOrigin_s": -0.3,
+            "yIncrement_V": 0.0008,
+            "yOrigin": 0.0,
+            "yReference": 127.0
+        },
+        "CH2": {
+            "points": 1200.0,
+            "xIncrement_s": 0.0005,
+            "xOrigin_s": -0.3,
+            "yIncrement_V": 0.0008,
+            "yOrigin": 0.0,
+            "yReference": 127.0
+        }
+    },
+    "checks": {
+        "stepMatches": true,
+        "dacPolarityValid": true,
+        "responseSignValid": true,
+        "scopeSignValid": true
+    },
+    "preliminaryValid": true
+}
