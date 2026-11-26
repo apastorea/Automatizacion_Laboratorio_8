@@ -195,44 +195,17 @@ La secuencia física comenzó en \texttt{MONITOR}: se obtuvieron 600 muestras co
 Cada controlador se capturó por separado con la misma referencia. Los tres registros contienen 600 muestras consecutivas, sin banderas fatales, saturaciones ni bloqueos de anti-windup. Los tiempos máximos de ISR fueron 116, 116 y \SI{117}{\micro s}, muy por debajo de $T_s=\SI{2}{ms}$. Al finalizar se recompiló y programó nuevamente \texttt{MONITOR}, dejando ambos DAC en cero y los enclavamientos de actuación deshabilitados en el código entregado.
 
 \subsection{Medición con osciloscopio}
-Se utilizó un RIGOL DS1202Z-E por VISA/SCPI, con CH1 conectado a J5 para medir el mando y CH2 conectado a J7 para medir la salida de la planta. En cada caso se adquirieron 1200 muestras por canal con un paso de \SI{2}{ms}. La Tabla~\ref{tab:rigol} resume las magnitudes obtenidas directamente de esos registros.
+Se utilizó un RIGOL DS1202Z-E por VISA/SCPI, con CH1 conectado a J5 para medir el mando y CH2 conectado a J7 para medir la salida de la planta. Las adquisiciones de 1200 muestras por canal confirmaron el cableado, el disparo y los niveles presentes en ambos puntos. Como CH2/J7 alcanzó sólo \SI{14.8}{mV}, esas trazas no permitieron reconocer con seguridad el escalón de \SI{50}{mV}; por esta razón, los CSV del instrumento se conservaron como evidencia de la medición, mientras que $t_r$, $t_s$ y $M_p$ se obtuvieron de la telemetría UART. Después de los ensayos se programó nuevamente \texttt{MONITOR} con los enclavamientos de actuación en cero.
 
-\begin{table*}[!t]
-\caption{Magnitudes medidas por el RIGOL en las adquisiciones de dos canales}
-\label{tab:rigol}
-\centering
-\scriptsize
-\begin{tabular}{cccccccccc}
-\toprule
-Caso & $N$/canal & \multicolumn{4}{c}{CH1/J5: mando [mV]} & \multicolumn{4}{c}{CH2/J7: salida [mV]}\\
- & & mín. & máx. & $V_{pp}$ & RMS & mín. & máx. & $V_{pp}$ & RMS\\
-\midrule
-1 & 1200 & 12.0 & 17.6 & 5.6 & 15.008 & 4.0 & 14.4 & 10.4 & 9.911\\
-2 & 1200 & 11.2 & 17.6 & 6.4 & 14.913 & 3.2 & 14.8 & 11.6 & 9.903\\
-3 & 1200 & 12.0 & 17.6 & 5.6 & 15.082 & 4.4 & 14.0 & 9.6 & 9.968\\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-La salida J7 alcanzó como máximo \SI{14.8}{mV}, de modo que el registro del osciloscopio no permitió reconocer con seguridad una meseta de \SI{50}{mV}. Estas trazas sirven para comprobar la conexión, el disparo y las amplitudes observadas, pero no para obtener $t_r$, $t_s$ o $M_p$. Esos parámetros se calcularon con las capturas UART. Cuando una condición no se cumplió se indicó como ``No alcanzado'', en lugar de asignarle un cero.
-
-La revisión del cableado confirmó que CH2 estaba conectado a J7, salida física de la planta, mientras que CH1 corresponde a J5 y mide el mando aplicado. La Fig.~\ref{fig:rigol} fue recreada directamente desde los CSV de los tres ensayos, sin filtrado, interpolación, normalización ni cambio de amplitud. Después de las adquisiciones se recompiló y programó nuevamente \texttt{MONITOR} con los enclavamientos de actuación en cero.
+La Fig.~\ref{fig:experimental} reúne la salida y el mando adquiridos directamente por UART. En la respuesta se observa que el caso 2 alcanza primero la meseta, seguido por los casos 3 y 1, en concordancia con los tiempos de subida de la Tabla~\ref{tab:ideal}. El panel de mando muestra que el caso 2 exige el intervalo más amplio, aunque los tres permanecen dentro de los límites revalidados de $-115$ y \SI{107}{mV}. Las oscilaciones de pocos milivoltios alrededor de la referencia explican por qué no se sostiene la banda estricta de establecimiento de $\pm\SI{1}{mV}$.
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.80\textwidth]{../../../05_Resultados/rigol_casos_ampliados_desde_csv_lab9.png}
-\caption{Trazas físicas de los tres controladores recreadas desde 1200 muestras por canal. CH1/J5 es el mando y CH2/J7 la salida de planta; cada panel usa límites propios y conserva los valores sin modificar.}
-\label{fig:rigol}
-\end{figure*}
-
-La Fig.~\ref{fig:experimental} presenta la respuesta adquirida directamente por UART. Se observa que el caso 2 alcanza primero la meseta, seguido por los casos 3 y 1, en concordancia con los tiempos de subida de la Tabla~\ref{tab:ideal}. En los registros, el mando cuantizado permanece entre $-21$ y \SI{77}{mV}, con margen respecto de los límites revalidados de $-115$ y \SI{107}{mV}. Las oscilaciones de pocos milivoltios alrededor de la referencia explican por qué no se sostiene la banda estricta de establecimiento de $\pm\SI{1}{mV}$.
-
-\begin{figure}[!t]
-\centering
-\includegraphics[width=\columnwidth]{respuesta_experimental_lab9.png}
-\caption{Respuesta experimental de los tres controladores. Las curvas proceden de 600 muestras UART por caso.}
+\includegraphics[width=0.49\textwidth]{respuesta_experimental_lab9.png}\hfill
+\includegraphics[width=0.49\textwidth]{mando_experimental_lab9.png}
+\caption{Comparación experimental obtenida de 600 muestras UART por caso: salida de la planta y referencia (izquierda), y mando cuantizado aplicado por el PSoC (derecha).}
 \label{fig:experimental}
-\end{figure}
+\end{figure*}
 
 El núcleo del controlador se compiló para Cortex-M3 con \texttt{-Wall}, \texttt{-Wextra} y \texttt{-Werror}. El proyecto completo también compiló en PSoC Creator 4.4 sin advertencias y generó \texttt{Lab9.hex}, con 9560 bytes de Flash y 33889 bytes de SRAM. La comparación entre las constantes del código C y \texttt{dlqr} dio un error máximo de $4.326\times10^{-10}$. La versión entregada queda en \texttt{MONITOR}, con los cuatro enclavamientos de actuación en cero.
 
