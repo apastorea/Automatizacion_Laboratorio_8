@@ -9,8 +9,8 @@ comparativa de valores calculados, simulados y medidos experimentalmente.
 Para compilar:
 
 ```text
-pdflatex main.tex
-pdflatex main.tex
+pdflatex -jobname=Informe_Lab9_Automatizacion_Aldo_Pastore_v1 main.tex
+pdflatex -jobname=Informe_Lab9_Automatizacion_Aldo_Pastore_v1 main.tex
 ```
 
 Las figuras se generan mediante `01_Modelado_MATLAB/diseno_control_optimo_lab9.m`
