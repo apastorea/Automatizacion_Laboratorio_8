@@ -11,7 +11,7 @@
  * actuacion deshabilitados en lab8_config.h.
  */
 #include "project.h"
-#include "lab5_hardware.h"
+#include "lab8_hardware.h"
 #include "lab8_control_integral.h"
 #include "lab8_config.h"
 #include <float.h>
@@ -95,14 +95,14 @@ static int32 convertir_mV(float v)
 {
     float c;
     if (!es_finito(v)) return 0;
-    c = Lab5Clamp(1000.0f*v, -100000.0f, 100000.0f);
+    c = Lab8Clamp(1000.0f*v, -100000.0f, 100000.0f);
     return (int32)(c + ((c >= 0.0f) ? 0.5f : -0.5f));
 }
 
 static void detener_seguro(void)
 {
     Timer_TS_Stop();
-    Lab5HardwareZeroOutput();
+    Lab8HardwareZeroOutput();
     captura_finalizada = 1u;
 }
 
@@ -133,7 +133,7 @@ CY_ISR(Lab8MuestreoISR)
     }
     tick_anterior = tic_ini;
 
-    salida_V = Lab5HardwareReadPlant(&adc_raw, &adc_V);
+    salida_V = Lab8HardwareReadPlant(&adc_raw, &adc_V);
     if (!es_finito(salida_V) || !es_finito(adc_V)) {
         salida_V = 0.0f;
         banderas |= F_NUM;
@@ -171,12 +171,12 @@ CY_ISR(Lab8MuestreoISR)
     }
     if ((banderas & F_FATALES) != 0u) u_solicitada_V = 0.0f;
 
-    u_nominal_V = Lab5HardwareWriteOutput(u_solicitada_V,
+    u_nominal_V = Lab8HardwareWriteOutput(u_solicitada_V,
                                           &positivo, &negativo, &saturado);
     if (saturado || u_nominal_V > LAB8_U_LIMITE_FISICO_V ||
         u_nominal_V < -LAB8_U_LIMITE_FISICO_V) {
         banderas |= F_DAC_FISICO;
-        Lab5HardwareZeroOutput();
+        Lab8HardwareZeroOutput();
         u_nominal_V = 0.0f;
         positivo = 0u;
         negativo = 0u;
@@ -294,8 +294,8 @@ int main(void)
     uint8 intentos = 0u;
     CyGlobalIntDisable;
     lab8_reiniciar(&estado, 0.0f, 0.0f);
-    Lab5HardwareInit();
-    Lab5HardwareZeroOutput();
+    Lab8HardwareInit();
+    Lab8HardwareZeroOutput();
     UART_Debug_Start();
     Clock_Medicion_Start();
     Timer_Medicion_Start();

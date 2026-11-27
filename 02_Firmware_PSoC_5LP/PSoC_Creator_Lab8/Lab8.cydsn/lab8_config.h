@@ -74,4 +74,12 @@
 #define LAB8_U_LIMITE_FISICO_V       (1.020f)
 #define LAB8_Y_FALLO_V               (0.750f)
 
+/* Conversion ADC/DAC comprobada para el banco actual. Las constantes se
+ * concentran aqui para que simulacion, telemetria y HAL usen la misma escala. */
+#define LAB8_ADC_OFFSET_VOLTS          (2.353802067f)
+#define LAB8_ADC_VOLTS_PER_PLANT_VOLT  (0.210251951f)
+#define LAB8_DAC_POSITIVE_GAIN         (3.842612000f)
+#define LAB8_DAC_NEGATIVE_GAIN         (2.640105691f)
+#define LAB8_DAC_VOLTS_PER_COUNT       (0.004f)
+
 #endif

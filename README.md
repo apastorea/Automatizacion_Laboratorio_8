@@ -23,13 +23,14 @@ El trabajo incluye:
 
 ## Resultados principales
 
-El modelo identificado obtuvo un RMSE conjunto de 5.756 mV en las capturas
-preliminares, frente a 6.772 mV del modelo calculado a partir de los
-componentes. El barrido de amplitudes seleccionó 500 mV para la validación
-principal: en simulación con el modelo identificado, el mayor esfuerzo fue
-0.745 V, con 25.5 % de margen respecto del límite de 1 V y sin saturación. A
-esta escala, un paso del DAC positivo representa 3.07 % de la referencia y el
-RMSE de lectura caracterizado representa 0.675 %.
+La validación abierta vigente de 500 mV arrojó un RMSE de 14.417 mV para el
+modelo identificado y de 36.079 mV para el modelo calculado a partir de los
+componentes. Esto representa una reducción del 60.0 % y confirma el modelo
+identificado como base de síntesis. El barrido de amplitudes seleccionó
+500 mV para los ensayos principales: en simulación con ese modelo, el mayor
+esfuerzo fue 0.745 V, con 25.5 % de margen respecto del límite de 1 V y sin
+saturación. A esta escala, un paso del DAC positivo representa 3.07 % de la
+referencia y el RMSE de lectura caracterizado representa 0.675 %.
 
 Las corridas físicas principales se realizaron con 500 mV. La verificación
 abierta aplicó 507 mV nominales, obtuvo 492 mV por UART y 508 mV en CH2. En
@@ -50,7 +51,8 @@ enclavamientos de actuación deshabilitados.
 - `02_Firmware_PSoC_5LP/`: workspace de PSoC Creator y prueba del núcleo de control.
 - `04_Ensayos/`: capturadores y adquisiciones crudas sincronizadas.
 - `05_Resultados/`: tablas, figuras y resúmenes reproducibles.
-- `06_Informe_IEEE/Informe_Lab8/`: fuente LaTeX y PDF final.
+- `06_Informe_IEEE/Informe_Lab8/`: fuente LaTeX y PDF final
+  `Informe_Lab8_Automatizacion_Aldo_Pastore_v2.pdf`.
 - `07_Registro_de_decisiones/`: parámetros y estado final del trabajo.
 
 ## Reproducción

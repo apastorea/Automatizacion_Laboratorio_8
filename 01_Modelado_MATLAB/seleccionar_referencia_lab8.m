@@ -3,7 +3,7 @@
 % Objetivo:
 %   seleccionar una referencia que permita evaluar los controladores sin que
 %   la cuantizacion ni el ruido dominen la medicion y sin perder margen de
-%   actuacion. Se ensayan seis amplitudes sobre una unica planta fisica,
+%   actuacion. Se ensayan cuatro amplitudes sobre una unica planta fisica,
 %   representada por los modelos identificado y nominal, con ambos polos
 %   integrales y el DAC bipolar cuantizado.
 %
@@ -29,7 +29,7 @@ numeroMuestras = 600;
 tiempo = (0:numeroMuestras-1)'*Ts;
 indiceInicio = 33;
 indiceFin = 333;
-referencias_V = [0.050; 0.100; 0.250; 0.500; 0.750; 1.000];
+referencias_V = [0.250; 0.500; 0.750; 1.000];
 limiteActuador_V = 1.0;
 fraccionMaximaActuador = 0.80;
 

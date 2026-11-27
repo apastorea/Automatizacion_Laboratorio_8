@@ -37,14 +37,10 @@
       <Folder BuildType="STRICT" Path="C:\Users\aldop\OneDrive\Documentos\UCA\2026\2do Semestre\Automatizacion\Automatizacion_Laboratorios\Laboratorio_8\02_Firmware_PSoC_5LP\PSoC_Creator_Lab8\Lab8.cydsn">
         <Files Root="C:\Users\aldop\OneDrive\Documentos\UCA\2026\2do Semestre\Automatizacion\Automatizacion_Laboratorios\Laboratorio_8\02_Firmware_PSoC_5LP\PSoC_Creator_Lab8\Lab8.cydsn">
           <File BuildType="BUILD" Toolchain="">main.c</File>
-          <File BuildType="BUILD" Toolchain="">lab5_control.c</File>
-          <File BuildType="BUILD" Toolchain="">lab5_hardware.c</File>
+          <File BuildType="BUILD" Toolchain="">lab8_hardware.c</File>
           <File BuildType="BUILD" Toolchain="">lab8_control_integral.c</File>
           <File BuildType="BUILD" Toolchain="">cyapicallbacks.h</File>
-          <File BuildType="BUILD" Toolchain="">lab5_config.h</File>
-          <File BuildType="BUILD" Toolchain="">lab5_experiment.h</File>
-          <File BuildType="BUILD" Toolchain="">lab5_control.h</File>
-          <File BuildType="BUILD" Toolchain="">lab5_hardware.h</File>
+          <File BuildType="BUILD" Toolchain="">lab8_hardware.h</File>
           <File BuildType="BUILD" Toolchain="">lab8_control_integral.h</File>
           <File BuildType="BUILD" Toolchain="">lab8_config.h</File>
         </Files>

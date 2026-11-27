@@ -28,7 +28,7 @@ Asunción, Paraguay}}
 \maketitle
 
 \begin{abstract}
-Se diseñó un sistema digital de seguimiento para una planta analógica de segundo orden mediante realimentación de estados, acción integral y un estimador de estado actual. La planta física está formada por dos etapas de primer orden en cascada; el modelo identificado se adoptó para la síntesis y el modelo calculado con los componentes se conservó como contraste de sensibilidad. Se utilizó un período de muestreo de \SI{2}{ms} y se compararon polos integrales en $0.60$ y $0.30$. Un barrido entre \SI{50}{mV} y \SI{1}{V} mostró que \SI{500}{mV} es la mayor referencia evaluada que conserva, para ambos controladores, al menos \SI{20}{\percent} de reserva respecto del límite de $\pm\SI{1}{V}$ sobre el modelo identificado. MATLAB y Simulink reprodujeron el seguimiento sin saturación. En el banco, los diseños lento y rápido alcanzaron \SI{498}{mV}, con error estacionario de \SI{2}{mV}; sus tiempos de subida fueron \SI{12}{ms} y \SI{10}{ms}, y sus sobrepasamientos, \SI{10.4}{\percent} y \SI{14.6}{\percent}. El mando nominal permaneció entre \SI{-253}{mV} y \SI{769}{mV}, sin saturación, anti-windup ni fallas temporales. Finalizados los ensayos, el PSoC 5LP se recompiló en modo seguro \texttt{MONITOR}, con los DAC en cero y todos los enclavamientos de actuación deshabilitados.
+Se diseñó un sistema digital de seguimiento para una planta analógica de segundo orden mediante realimentación de estados, acción integral y un estimador de estado actual. La planta física está formada por dos etapas de primer orden en cascada; el modelo identificado se adoptó para la síntesis y el modelo calculado con los componentes se conservó como contraste de sensibilidad. Se utilizó un período de muestreo de \SI{2}{ms} y se compararon polos integrales en $0.60$ y $0.30$. Un criterio basado en saturación, cuantización y reserva de actuación estableció \SI{500}{mV} como referencia de ensayo; para ambos controladores conserva al menos \SI{20}{\percent} de margen respecto del límite de $\pm\SI{1}{V}$ sobre el modelo identificado. MATLAB y Simulink reprodujeron el seguimiento sin saturación. En el banco, los diseños lento y rápido alcanzaron \SI{498}{mV}, con error estacionario de \SI{2}{mV}; sus tiempos de subida fueron \SI{12}{ms} y \SI{10}{ms}, y sus sobrepasamientos, \SI{10.4}{\percent} y \SI{14.6}{\percent}. El mando nominal permaneció entre \SI{-253}{mV} y \SI{769}{mV}, sin saturación, anti-windup ni fallas temporales. Finalizados los ensayos, el PSoC 5LP se recompiló en modo seguro \texttt{MONITOR}, con los DAC en cero y todos los enclavamientos de actuación deshabilitados.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -41,7 +41,7 @@ La realimentación de estados permite modificar la dinámica de una planta media
 \section{Objetivos y alcance}
 Los objetivos son: seleccionar y justificar el período de muestreo; discretizar la planta mediante retención de orden cero; incorporar la integral del error; diseñar dos controladores variando la dinámica integral; implementar un estimador actual; comparar respuesta, esfuerzo y sensibilidad al modelo; elegir una amplitud experimental compatible con la resolución y el margen del actuador; y preparar una implementación segura en PSoC 5LP.
 
-El alcance comprende el cálculo, las simulaciones MATLAB/Simulink, el firmware compilable, la prevalidación física segura, la revalidación bipolar en lazo abierto y el cierre de lazo con ambos diseños integrales. Las primeras capturas de \SI{50}{mV} se conservan como diagnóstico de baja amplitud. A partir de sus limitaciones y del barrido de esfuerzo se estableció \SI{500}{mV} como condición principal, manteniendo la misma planta, las mismas ganancias y el mismo período de muestreo. El PSoC permanece por defecto en \texttt{MONITOR}, con los DAC en cero y los enclavamientos de actuación deshabilitados.
+El alcance comprende el cálculo, las simulaciones MATLAB/Simulink, el firmware compilable, la prevalidación física segura, la verificación en lazo abierto a \SI{500}{mV} y el cierre de lazo con ambos diseños integrales. Todos los resultados cuantitativos se obtuvieron con la misma planta, las mismas ganancias, el mismo período de muestreo y el mismo protocolo de adquisición. El PSoC permanece por defecto en \texttt{MONITOR}, con los DAC en cero y los enclavamientos de actuación deshabilitados.
 
 \section{Modelo y discretización}
 \subsection{Modelo continuo nominal}
@@ -91,35 +91,31 @@ B_{id}&=\begin{bmatrix}-0.631610700\\0.130459080\end{bmatrix}.
 Estas matrices se usan para calcular $K_x$, $K_i$ y $L$. El modelo nominal no representa otra planta: se simula como una segunda descripción matemática de la misma cascada para medir sensibilidad paramétrica.
 
 \subsection{Validación independiente del modelo adoptado}
-Los escalones abiertos medidos no se utilizaron para volver a identificar la planta: un único pulso por polaridad no excita suficientemente todos los parámetros de un modelo de segundo orden. Se emplearon, en cambio, como conjunto de validación independiente. Para cada adquisición se restó la mediana de las 32 muestras de pretrigger y se simularon, sin ajuste adicional, el modelo nominal y el identificado con el mando cuantizado realmente aplicado. La ventana de evaluación comprende el frente, la meseta y el retorno inicial.
+La adquisición abierta de \SI{500}{mV} no se utilizó para volver a identificar la planta, sino como comprobación independiente de las dos representaciones matemáticas. Se restó la mediana de las 32 muestras de pretrigger y se simularon, sin ajuste adicional, el modelo nominal y el identificado con el mando cuantizado realmente aplicado. La ventana de evaluación comprende el frente, la meseta y el retorno inicial.
 
 \begin{table*}[!t]
-\caption{Validación abierta independiente de los modelos}
+\caption{Validación abierta con la adquisición vigente de \SI{500}{mV}}
 \label{tab:validacion-modelos}
 \centering
 \small
 \begin{tabular}{llrrrr}
 \toprule
-Ensayo & Modelo & RMSE [mV] & Ajuste NRMSE [\%] & Meseta predicha [mV] & Sesgo de meseta [mV]\\
+Modelo & RMSE [mV] & Ajuste NRMSE [\%] & Meseta medida [mV] & Meseta predicha [mV] & Sesgo [mV]\\
 \midrule
-Positivo & Nominal & 6.214 & 69.41 & 46.85 & -1.15\\
-Positivo & Identificado & 5.777 & 71.56 & 46.14 & -1.86\\
-Negativo & Nominal & 7.289 & 68.74 & -53.98 & -3.98\\
-Negativo & Identificado & 5.735 & 75.40 & -53.16 & -3.16\\
-Ambos & Nominal & 6.772 & 69.07 & -- & --\\
-Ambos & Identificado & 5.756 & 73.48 & -- & --\\
+Nominal & 36.079 & 83.42 & 493.00 & 516.40 & 23.40\\
+Identificado & 14.417 & 93.37 & 493.00 & 508.49 & 15.49\\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=0.94\textwidth]{validacion_modelos_abierto_lab8.png}
-\caption{Validación abierta de los modelos. Se comparan las respuestas calculadas con la salida UART, utilizando el mando efectivamente aplicado y sin reajustar parámetros.}
+\includegraphics[width=0.94\textwidth]{validacion_modelos_abierto_500mV.png}
+\caption{Validación abierta de los modelos a \SI{500}{mV}. Se comparan las respuestas calculadas con la salida UART, utilizando el mando efectivamente aplicado y sin reajustar parámetros.}
 \label{fig:validacion-modelos}
 \end{figure*}
 
-El modelo identificado presenta menor RMSE en ambas polaridades y un ajuste medio \num{4.41} puntos porcentuales superior. En el escalón positivo el nominal aproxima levemente mejor la meseta, pero reproduce peor el frente; en el negativo el identificado mejora simultáneamente la dinámica y el sesgo. Estos pulsos no constituyen una nueva identificación, pero sí confirman que el modelo identificado representa mejor la dinámica observada y resulta adecuado para la síntesis.
+El modelo identificado reduce el RMSE de \SI{36.079}{mV} a \SI{14.417}{mV}, una mejora del \SI{60.0}{\percent}, y eleva el ajuste NRMSE en \num{9.95} puntos porcentuales. También disminuye el sesgo de meseta en \SI{7.90}{mV}. Esta comprobación confirma que la representación identificada describe mejor la dinámica observada y resulta adecuada para la síntesis del controlador y del estimador.
 
 \section{Control integral y estimador}
 El estado integral se define por
@@ -177,7 +173,7 @@ Los límites precuantización se fijaron en $u\in[-1,1]$~V, coherentes con la ca
 
 \section{Implementación MATLAB y Simulink}
 \subsection{Selección de la condición experimental}
-La referencia no se eligió de manera arbitraria. Se simularon amplitudes de \SI{50}{mV}, \SI{100}{mV}, \SI{250}{mV}, \SI{500}{mV}, \SI{750}{mV} y \SI{1}{V} con el DAC cuantizado, el anti-windup y ambos controladores. El criterio exige cero saturaciones y un esfuerzo máximo no mayor que \SI{80}{\percent} del límite de $\pm\SI{1}{V}$ sobre el modelo identificado, que es la representación usada para el diseño. El nominal se mantiene como contraste conservador.
+La referencia no se eligió de manera arbitraria. Se simularon amplitudes de \SI{250}{mV}, \SI{500}{mV}, \SI{750}{mV} y \SI{1}{V} con el DAC cuantizado, el anti-windup y ambos controladores. El criterio exige cero saturaciones y un esfuerzo máximo no mayor que \SI{80}{\percent} del límite de $\pm\SI{1}{V}$ sobre el modelo identificado, que es la representación usada para el diseño. El nominal se mantiene como contraste conservador.
 
 \begin{table}[!t]
 \caption{Barrido para seleccionar la referencia}
@@ -188,8 +184,6 @@ La referencia no se eligió de manera arbitraria. Se simularon amplitudes de \SI
 \toprule
 $r$ [mV] & $|u|_{\max}$ [V] & Margen [\%] & $q_+/r$ [\%] & Sat.\\
 \midrule
-50 & 0.074 & 92.64 & 30.74 & 0\\
-100 & 0.147 & 85.26 & 15.37 & 0\\
 250 & 0.373 & 62.66 & 6.15 & 0\\
 500 & 0.745 & 25.51 & 3.07 & 0\\
 750 & 1.089 & $-8.89$ & 2.05 & 2\\
@@ -198,7 +192,7 @@ $r$ [mV] & $|u|_{\max}$ [V] & Margen [\%] & $q_+/r$ [\%] & Sat.\\
 \end{tabular}
 \end{table}
 
-El escalón de \SI{500}{mV} es la mayor amplitud candidata que satisface el criterio en los dos diseños. Respecto de \SI{50}{mV}, multiplica por diez la señal útil, reduce el peso relativo del paso positivo del DAC de \SI{30.74}{\percent} a \SI{3.07}{\percent} y disminuye el error RMS de lectura relativo de \SI{6.75}{\percent} a \SI{0.675}{\percent}. En el contraste nominal tampoco aparece saturación, aunque el peor margen se reduce a \SI{7.39}{\percent}.
+El escalón de \SI{500}{mV} es la mayor amplitud candidata que satisface el criterio en los dos diseños. En esta condición, el paso positivo del DAC equivale al \SI{3.07}{\percent} de la referencia, el error RMS de lectura al \SI{0.675}{\percent} y el peor margen sobre el modelo identificado al \SI{25.51}{\percent}. En el contraste nominal tampoco aparece saturación, aunque el peor margen se reduce a \SI{7.39}{\percent}.
 
 \begin{figure*}[!t]
 \centering
@@ -223,6 +217,25 @@ El modelo Simulink implementa explícitamente la integral, el observador actual 
 La implementación se organizó en el workspace \texttt{Lab8.cywrk}. El \emph{TopDesign} contiene el ADC, los dos DAC, los temporizadores, la UART y los pines de diagnóstico. La capa de hardware concentra la conversión entre cuentas y voltios, mientras que el núcleo de control se mantiene en archivos independientes para poder probar sus operaciones numéricas fuera de la placa. Las matrices $A_{id}$ y $B_{id}$, las ganancias y los límites se declaran en un único punto del programa para evitar diferencias entre la simulación y el firmware.
 
 La ISR de \SI{2}{ms} realiza: lectura ADC; corrección de cero con 32 muestras de pretrigger; estimación actual; cálculo del control; anti-windup; cuantización mediante la HAL; corrección de la predicción con la tensión efectivamente aplicada; registro de estados, integral, innovación, códigos DAC y tiempos. La referencia se retira en la muestra 333 y la adquisición finaliza en la muestra 600.
+
+\begin{table}[!t]
+\caption{Configuración del banco experimental}
+\label{tab:banco}
+\centering
+\scriptsize
+\begin{tabular}{lp{4.6cm}}
+\toprule
+Elemento & Configuración\\
+\midrule
+Planta & Cascada única U2.1--U2.2, entrada J5 y salida J7\\
+PSoC 5LP & ADC, DAC bipolar, control a \SI{2}{ms} y UART a 57600~bit/s\\
+Salida positiva & P3[7], pin físico 37, conectada a J3\\
+Salida negativa & P0[0], conectada a J2\\
+Osciloscopio & RIGOL DS1202Z-E; CH1 en J5 y CH2 en J7\\
+Referencia & Pulso $0\rightarrow\SI{500}{mV}\rightarrow0$ con tierra común\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 Se implementaron cuatro niveles de protección:
 \begin{enumerate}
@@ -289,8 +302,6 @@ Rápido & Identificado & 576.34 & -247.34 & 745.88\\
 \label{sec:experimental}
 El banco se verificó primero en \texttt{MONITOR}, con los DAC en cero, CH1 en J5, CH2 en J7 y tierra común. MATLAB coordinó el puerto COM9 a 57600~bit/s con el RIGOL DS1202Z-E mediante VISA. La adquisición reunió 600 filas UART y 1200 puntos por canal; no se registraron banderas, los códigos de ambos DAC permanecieron en cero y el período medido fue 1999/2000/2001~$\mu$s. El peor tiempo de ISR fue \SI{52}{\micro s}, apenas \SI{2.6}{\percent} de $T_s$.
 
-Antes de aplicar la referencia principal se utilizó un pulso de \SI{50}{mV} únicamente para verificar la polaridad. El DAC entregó \SI{46}{mV} con código 3 y la salida relativa evolucionó en sentido positivo. Por su baja relación señal--ruido, esta captura no se empleó para evaluar el controlador.
-
 \subsection{Verificación abierta a \SI{500}{mV}}
 En modo \texttt{ABIERTO} se aplicó un pulso entre $k=32$ y $k=127$, equivalente a \SI{192}{ms}. El mando solicitado fue \SI{500}{mV}; la cuantización produjo \SI{507}{mV} con código 33 del DAC positivo. La salida relativa alcanzó \SI{492}{mV} por UART y CH2 midió un incremento de \SI{508}{mV}. La ganancia estática observada por la cadena ADC/UART fue 0.970, no hubo banderas y el tiempo máximo de ISR fue \SI{59}{\micro s}. Estos resultados verifican simultáneamente el signo, la amplitud útil y el retorno seguro a cero.
 
@@ -351,7 +362,7 @@ El diseño lento alcanzó una mediana de \SI{498}{mV} en las últimas 50 muestra
 \label{tab:comparacion-integral}
 \centering
 \scriptsize
-\begin{tabular}{lrr}
+\begin{tabular}{p{4.2cm}rr}
 \toprule
 Métrica & Lento & Rápido\\
 \midrule
@@ -360,7 +371,8 @@ Error estacionario [mV] & 2 & 2\\
 Error RMS [mV] & 2.980 & 2.429\\
 Subida 10--90\% [ms] & 12 & 10\\
 Sobrepasamiento [\%] & 10.4 & 14.6\\
-Establecimiento 2\% [ms] & 544 & 458\\
+Establecimiento 2\%, ventana de 20 ms [ms] & 40 & 36\\
+Permanencia estricta en 2\% [ms] & 544 & 458\\
 Mando nominal mín./máx. [mV] & -190 / 707 & -253 / 769\\
 Saturación / anti-windup / fallas & 0 / 0 / 0 & 0 / 0 / 0\\
 Período mín./med./máx. [$\mu$s] & 1999/2000/2001 & 1999/2000/2001\\
@@ -370,7 +382,7 @@ $\Delta$J7 / retorno RIGOL [mV] & 560 / 40 & 548 / 24\\
 \end{tabular}
 \end{table}
 
-La banda de establecimiento del 2\% equivale aproximadamente a $\pm\SI{10}{mV}$. Aunque ambas respuestas llegan a la referencia en pocos períodos, las excursiones discretas producidas por ruido y cuantización hacen que la permanencia estricta dentro de esa banda se alcance más tarde. El diseño rápido reduce el tiempo de subida en \SI{16.7}{\percent} y el RMS en \SI{18.5}{\percent}, a costa de aumentar el sobrepasamiento en \num{4.2} puntos porcentuales y exigir \SI{62}{mV} adicionales de mando positivo.
+La banda del 2\% equivale aproximadamente a $\pm\SI{10}{mV}$. Para representar la dinámica sin que una muestra aislada determine toda la métrica, se calculó el primer intervalo de \SI{20}{ms} con al menos el \SI{80}{\percent} de las muestras dentro de la banda y con la mediana también contenida en ella. Así se obtuvieron \SI{40}{ms} para el diseño lento y \SI{36}{ms} para el rápido. La permanencia estricta se informa por separado y resulta más tardía debido a excursiones discretas de ruido y cuantización. El diseño rápido reduce el tiempo de subida en \SI{16.7}{\percent} y el RMS en \SI{18.5}{\percent}, a costa de aumentar el sobrepasamiento en \num{4.2} puntos porcentuales y exigir \SI{62}{mV} adicionales de mando positivo.
 
 \begin{table}[!t]
 \caption{Modelo identificado frente al experimento a \SI{500}{mV}}
@@ -382,6 +394,7 @@ La banda de establecimiento del 2\% equivale aproximadamente a $\pm\SI{10}{mV}$.
 Métrica & L--S & L--E & R--S & R--E\\
 \midrule
 $t_r$ [ms] & 12 & 12 & 10 & 10\\
+$t_{s,2\%,20\,\mathrm{ms}}$ [ms] & 36 & 40 & 44 & 36\\
 $M_p$ [\%] & 12.38 & 10.40 & 15.48 & 14.60\\
 $e_{ss}$ [mV] & -0.045 & 2.000 & 0.288 & 2.000\\
 RMS [mV] & 3.359 & 2.980 & 1.726 & 2.429\\
@@ -394,7 +407,7 @@ $u_{\max}$ [mV] & 691.67 & 707 & 737.78 & 769\\
 \end{flushleft}
 \end{table}
 
-La coincidencia de los tiempos de subida y de los mínimos de mando es exacta dentro de la resolución de registro. Los máximos experimentales superan a la simulación en \SI{15.3}{mV} para el lento y \SI{31.2}{mV} para el rápido, diferencias pequeñas frente al límite de \SI{1}{V}. El sobrepasamiento medido queda \num{1.98} puntos porcentuales por debajo del calculado para el lento y \num{0.88} puntos porcentuales por debajo para el rápido. No se activaron saturación ni anti-windup en ninguna ejecución.
+La coincidencia de los tiempos de subida y de los mínimos de mando es exacta dentro de la resolución de registro. El establecimiento con ventana difiere \SI{4}{ms} entre simulación y experimento en el diseño lento, mientras que el rápido se establece \SI{8}{ms} antes en el banco. Los máximos experimentales superan a la simulación en \SI{15.3}{mV} para el lento y \SI{31.2}{mV} para el rápido, diferencias pequeñas frente al límite de \SI{1}{V}. El sobrepasamiento medido queda \num{1.98} puntos porcentuales por debajo del calculado para el lento y \num{0.88} puntos porcentuales por debajo para el rápido. No se activaron saturación ni anti-windup en ninguna ejecución.
 
 \section{Discusión}
 La referencia de \SI{500}{mV} permitió evaluar el controlador sin que la resolución del DAC o el ruido de lectura dominaran la respuesta. El error RMS medido equivale a \SI{0.596}{\percent} de la referencia para el diseño lento y a \SI{0.486}{\percent} para el rápido. En la comprobación abierta, el DAC nominal de \SI{507}{mV}, la salida UART de \SI{492}{mV} y la lectura CH2 de \SI{508}{mV} mostraron un orden de magnitud coherente y la polaridad esperada.
@@ -407,11 +420,11 @@ La estabilidad lineal se mantiene en las cuatro combinaciones de controlador y m
 
 \balance
 \section{Conclusiones}
-La cascada U2.1--U2.2 se trató como una única planta de segundo orden. Los polos calculados coinciden con los valores elegidos dentro de la precisión numérica y el modelo identificado reprodujo mejor las capturas abiertas: su RMSE conjunto fue de \SI{5.756}{mV}, frente a \SI{6.772}{mV} del modelo obtenido a partir de los componentes. Por este motivo, controlador y estimador se sintetizaron directamente con la representación identificada.
+La cascada U2.1--U2.2 se trató como una única planta de segundo orden. Los polos calculados coinciden con los valores elegidos dentro de la precisión numérica y el modelo identificado reprodujo mejor la adquisición abierta de \SI{500}{mV}: su RMSE fue de \SI{14.417}{mV}, frente a \SI{36.079}{mV} del modelo obtenido a partir de los componentes. Por este motivo, controlador y estimador se sintetizaron directamente con la representación identificada.
 
 El barrido de amplitud estableció \SI{500}{mV} como un punto de operación adecuado: utiliza 33 códigos positivos del DAC durante la verificación abierta y conserva margen suficiente para los transitorios. Las referencias de \SI{750}{mV} y \SI{1}{V} fueron descartadas porque el modelo identificado solicita más de \SI{1}{V} y activa la saturación.
 
-En el banco, ambos controladores alcanzaron \SI{498}{mV} y dejaron un error estacionario de \SI{2}{mV}. El lento presentó \SI{12}{ms} de subida, \SI{10.4}{\percent} de sobrepasamiento y \SI{2.980}{mV} RMS; el rápido obtuvo \SI{10}{ms}, \SI{14.6}{\percent} y \SI{2.429}{mV}. Estas mediciones reproducen la tendencia y las magnitudes del modelo identificado. El diseño rápido mejora la llegada y el error RMS, mientras que el lento limita mejor el pico y el esfuerzo de control.
+En el banco, ambos controladores alcanzaron \SI{498}{mV} y dejaron un error estacionario de \SI{2}{mV}. El lento presentó \SI{12}{ms} de subida, \SI{40}{ms} de establecimiento con ventana, \SI{10.4}{\percent} de sobrepasamiento y \SI{2.980}{mV} RMS; el rápido obtuvo \SI{10}{ms}, \SI{36}{ms}, \SI{14.6}{\percent} y \SI{2.429}{mV}. Estas mediciones reproducen la tendencia y las magnitudes del modelo identificado. El diseño rápido mejora la llegada y el error RMS, mientras que el lento limita mejor el pico y el esfuerzo de control.
 
 El mando permaneció dentro de $[-253,769]$~mV, sin saturación, anti-windup ni banderas de falla. El máximo tiempo de ISR fue \SI{119}{\micro s} frente a un período de \SI{2}{ms}. MATLAB y Simulink coincidieron en la respuesta calculada, y las capturas UART/RIGOL confirmaron el funcionamiento físico. Al finalizar, el firmware se recompiló y programó en \texttt{MONITOR}, con los DAC en cero y los enclavamientos deshabilitados.
 

@@ -7,8 +7,8 @@
 %   x=[x1;x2], y=[0 1]*x; tensiones en V y tiempo en s.
 %   xi[k+1]=xi[k]+r[k]-y[k]
 %   u[k]=-Kx*xhat_actual[k]-Ki*xi[k]
-% La integral se actualiza despues de calcular u[k]. Los pasos del DAC se
-% comprobaron en banco para los codigos +3 y -5 utilizados en los ensayos.
+% La integral se actualiza despues de calcular u[k]. La condicion de banco
+% vigente utiliza 500 mV; la comprobacion abierta produjo codigo positivo 33.
 clear; clc; close all;
 fprintf('\nLABORATORIO 8 — PREVALIDACION MATEMATICA. NO ES UN ENSAYO FISICO.\n');
 

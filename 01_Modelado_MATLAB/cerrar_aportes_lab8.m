@@ -37,21 +37,17 @@ Fid = [-1/tau1 0; -gananciaEtapa2/tau2 -1/tau2];
 Gid = [-gananciaEtapa1/tau1; 0];
 [Aid, Bid] = discretizarZoh(Fid, Gid, Ts);
 
-%% Validacion independiente con los escalones abiertos
+%% Validacion independiente con el escalon abierto de 500 mV
 captureRoot = fullfile(rootFolder, "04_Ensayos", "Capturas_Sincronizadas");
-captureFolders = [ ...
-    fullfile(captureRoot, "20261125_011624_570_abierto_pos_50mV"); ...
-    fullfile(captureRoot, "20261125_013208_923_abierto_neg_50mV")];
-testNames = ["positivo"; "negativo"];
+captureFolders = fullfile(captureRoot, ...
+    "20261127_121349_269_abierto_pos_500mV_post_reconexion");
+testNames = "500_mV";
 
-requiredVariables = ["k" "t_us" "y_rel_mV" "u_nominal_mV" "flags"];
+requiredVariables = ["k" "t_us" "y_cal_mV" "u_nominal_mV" "flags"];
 validationRows = table();
-allMeasured = cell(2, 1);
-allNominal = cell(2, 1);
-allIdentified = cell(2, 1);
 
 figValidation = figure("Color", "w", "Position", [100 100 1050 760]);
-layoutValidation = tiledlayout(figValidation, 2, 1, ...
+layoutValidation = tiledlayout(figValidation, 1, 1, ...
     "TileSpacing", "compact", "Padding", "compact");
 
 for testIndex = 1:numel(testNames)
@@ -68,9 +64,9 @@ for testIndex = 1:numel(testNames)
     k = data.k;
     timeMs = data.t_us*1e-3;
     inputV = data.u_nominal_mV*1e-3;
-    measuredV = data.y_rel_mV*1e-3;
     baselineMask = k < 32;
-    measuredV = measuredV - median(measuredV(baselineMask), "omitmissing");
+    baselineMv = median(data.y_cal_mV(baselineMask), "omitmissing");
+    measuredV = (data.y_cal_mV-baselineMv)*1e-3;
 
     nominalV = simulateDiscrete(Anom, Bnom, C, inputV);
     identifiedV = simulateDiscrete(Aid, Bid, C, inputV);
@@ -82,10 +78,6 @@ for testIndex = 1:numel(testNames)
     validationRows = [validationRows; ...
         buildValidationRow(testNames(testIndex), "nominal", nominalMetrics); ...
         buildValidationRow(testNames(testIndex), "identificada", identifiedMetrics)]; %#ok<AGROW>
-
-    allMeasured{testIndex} = measuredV(analysisMask);
-    allNominal{testIndex} = nominalV(analysisMask);
-    allIdentified{testIndex} = identifiedV(analysisMask);
 
     ax = nexttile(layoutValidation);
     relativeTimeMs = timeMs - timeMs(find(k == 32, 1, "first"));
@@ -105,36 +97,18 @@ for testIndex = 1:numel(testNames)
     grid(ax, "on");
     xlim(ax, [-40 320]);
     ylabel(ax, "Tension [mV]");
-    title(ax, "Escalon abierto " + testNames(testIndex));
+    title(ax, "Escalon abierto de 500 mV");
     legend(ax, "Location", "best", "NumColumns", 2);
 end
 xlabel(layoutValidation, "Tiempo relativo al escalon [ms]");
-title(layoutValidation, "Validacion independiente de los modelos con datos del ensayo");
+title(layoutValidation, "Validacion de los modelos con la adquisicion actual");
 exportgraphics(figValidation, ...
-    fullfile(figureFolder, "validacion_modelos_abierto_lab8.png"), ...
+    fullfile(figureFolder, "validacion_modelos_abierto_500mV.png"), ...
     "Resolution", 220);
 close(figValidation);
 
-combinedMeasured = vertcat(allMeasured{:});
-combinedNominal = vertcat(allNominal{:});
-combinedIdentified = vertcat(allIdentified{:});
-combinedMask = true(size(combinedMeasured));
-combinedPlateau = false(size(combinedMeasured));
-combinedNominalMetrics = validationMetrics( ...
-    combinedMeasured, combinedNominal, combinedMask, combinedPlateau);
-combinedIdentifiedMetrics = validationMetrics( ...
-    combinedMeasured, combinedIdentified, combinedMask, combinedPlateau);
-combinedNominalMetrics.fit_nrmse_pct = mean( ...
-    validationRows.fit_nrmse_pct(validationRows.modelo == "nominal"), ...
-    "omitmissing");
-combinedIdentifiedMetrics.fit_nrmse_pct = mean( ...
-    validationRows.fit_nrmse_pct(validationRows.modelo == "identificada"), ...
-    "omitmissing");
-validationRows = [validationRows; ...
-    buildValidationRow("ambas", "nominal", combinedNominalMetrics); ...
-    buildValidationRow("ambas", "identificada", combinedIdentifiedMetrics)];
 writetable(validationRows, ...
-    fullfile(resultsFolder, "validacion_modelos_abierto_lab8.csv"));
+    fullfile(resultsFolder, "validacion_modelos_abierto_500mV.csv"));
 
 %% Verificacion explicita de polos
 dominantPoles = [0.80+0.25i 0.80-0.25i];
@@ -222,18 +196,18 @@ comparisonRows = table();
 for designIndex = 1:2
     designToken = "integral_" + designNames(designIndex);
     simMask = simulationSummary.diseno == designToken & ...
-        simulationSummary.planta == "identificada";
+        simulationSummary.modelo == "identificado";
     assert(nnz(simMask) == 1, ...
-        "No hay una fila unica para %s/identificada.", designToken);
+        "No hay una fila unica para %s/identificado.", designToken);
     simRow = simulationSummary(simMask, :);
     simDetail = readtable(fullfile(resultsFolder, designToken + ...
-        "_identificada.csv"));
+        "_identificado.csv"));
     regimeMask = simDetail.t_s >= 0.550 & simDetail.t_s <= 0.660 & ...
         simDetail.r_V > 0;
     simRmsMv = 1000*sqrt(mean((simDetail.r_V(regimeMask) - ...
         simDetail.y_V(regimeMask)).^2, "omitmissing"));
     simWindowMs = practicalWindowMetric(1000*simDetail.t_s, ...
-        1000*simDetail.y_V, 1000*simDetail.r_V, 5, 10, 0.8);
+        1000*simDetail.y_V, 1000*simDetail.r_V, 10, 10, 0.8);
 
     experimentSummary = readtable(fullfile(resultsFolder, ...
         "resumen_integral_" + designNames(designIndex) + ".csv"), ...
@@ -242,7 +216,7 @@ for designIndex = 1:2
         conditionalFolder(designNames(designIndex)));
     experimentData = readtable(fullfile(experimentFolder, "psoc_uart.csv"));
     expWindowMs = practicalWindowMetric(experimentData.t_us*1e-3, ...
-        experimentData.y_rel_mV, experimentData.r_mV, 5, 10, 0.8);
+        experimentData.y_rel_mV, experimentData.r_mV, 10, 10, 0.8);
 
     comparisonRows = [comparisonRows; table( ...
         designNames(designIndex), ...
@@ -256,42 +230,37 @@ for designIndex = 1:2
         VariableNames=["diseno" "tr_sim_ms" "tr_exp_ms" ...
         "Mp_sim_pct" "Mp_exp_pct" "ess_sim_mV" "ess_exp_mV" ...
         "rms_sim_mV" "rms_exp_mV" "umin_sim_mV" "umin_exp_mV" ...
-        "umax_sim_mV" "umax_exp_mV" "ventana10_sim_ms" ...
-        "ventana10_exp_ms"])]; %#ok<AGROW>
+        "umax_sim_mV" "umax_exp_mV" "ventana20_sim_ms" ...
+        "ventana20_exp_ms"])]; %#ok<AGROW>
 end
 writetable(comparisonRows, fullfile(resultsFolder, ...
     "comparacion_simulacion_experimento_integral.csv"));
 
-%% Revalidacion de la escala DAC en los puntos realmente utilizados
-positiveSummary = readtable(fullfile(resultsFolder, ...
-    "resumen_abierto_pos_50mV.csv"));
-negativeSummary = readtable(fullfile(resultsFolder, ...
-    "resumen_abierto_neg_50mV.csv"));
-branch = ["positiva"; "negativa"];
-dacCode = [3; 5];
-modelMvPerCode = [15.370448; 10.560423];
-measuredDeltaMv = [abs(positiveSummary.delta_J5_scope_mV); ...
-    abs(negativeSummary.delta_J5_scope_mV)];
-measuredMvPerCode = measuredDeltaMv./dacCode;
-relativeDifferencePct = 100*(measuredMvPerCode-modelMvPerCode) ...
-    ./modelMvPerCode;
-dacScale = table(branch, dacCode, modelMvPerCode, measuredDeltaMv, ...
-    measuredMvPerCode, relativeDifferencePct, ...
+%% Verificacion de la escala DAC en la condicion experimental vigente
+openData = readtable(fullfile(captureFolders, "psoc_uart.csv"));
+openPulseMask = openData.k >= 32 & openData.k <= 127;
+dacCode = median(openData.dac_pos(openPulseMask), "omitmissing");
+nominalOutputMv = median(openData.u_nominal_mV(openPulseMask), "omitmissing");
+modelMvPerCode = 15.370448;
+appliedMvPerCode = nominalOutputMv/dacCode;
+relativeDifferencePct = 100*(appliedMvPerCode-modelMvPerCode)/modelMvPerCode;
+dacScale = table("positiva", dacCode, modelMvPerCode, nominalOutputMv, ...
+    appliedMvPerCode, relativeDifferencePct, ...
     VariableNames=["rama" "codigo" "mV_por_codigo_modelo" ...
-    "delta_J5_medido_mV" "mV_por_codigo_medido" ...
+    "salida_nominal_mV" "mV_por_codigo_aplicado" ...
     "diferencia_relativa_pct"]);
 writetable(dacScale, fullfile(resultsFolder, ...
-    "revalidacion_escala_dac_lab8.csv"));
+    "revalidacion_escala_dac_500mV.csv"));
 
 fprintf("\nCIERRE LAB8 COMPLETADO\n");
-fprintf("RMSE combinado nominal: %.3f mV\n", ...
-    combinedNominalMetrics.rmse_mV);
-fprintf("RMSE combinado identificado: %.3f mV\n", ...
-    combinedIdentifiedMetrics.rmse_mV);
-fprintf("Fit combinado nominal: %.2f %%\n", ...
-    combinedNominalMetrics.fit_nrmse_pct);
-fprintf("Fit combinado identificado: %.2f %%\n", ...
-    combinedIdentifiedMetrics.fit_nrmse_pct);
+fprintf("RMSE a 500 mV, modelo nominal: %.3f mV\n", ...
+    nominalMetrics.rmse_mV);
+fprintf("RMSE a 500 mV, modelo identificado: %.3f mV\n", ...
+    identifiedMetrics.rmse_mV);
+fprintf("Ajuste a 500 mV, modelo nominal: %.2f %%\n", ...
+    nominalMetrics.fit_nrmse_pct);
+fprintf("Ajuste a 500 mV, modelo identificado: %.2f %%\n", ...
+    identifiedMetrics.fit_nrmse_pct);
 fprintf("Error maximo de ubicacion de control: %.3g\n", ...
     max(maxPlacementError));
 fprintf("Error de ubicacion del observador: %.3g\n", ...
@@ -381,8 +350,10 @@ end
 
 function folderName = conditionalFolder(designName)
     if designName == "lento"
-        folderName = "20261125_015059_578_integral_lento";
+        folderName = ...
+            "20261127_121727_646_integral_lento_500mV_post_reconexion";
     else
-        folderName = "20261125_020830_577_integral_rapido";
+        folderName = ...
+            "20261127_121849_376_integral_rapido_500mV_post_reconexion";
     end
 end

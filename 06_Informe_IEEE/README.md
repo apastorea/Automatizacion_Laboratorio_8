@@ -1,9 +1,12 @@
 # Informe técnico del Laboratorio 8
 
-Formato sugerido: IEEE, dos columnas, encabezado institucional habitual, ecuaciones y figuras numeradas.
+El entregable vigente es
+`Informe_Lab8/Informe_Lab8_Automatizacion_Aldo_Pastore_v2.pdf`. Su fuente es
+`Informe_Lab8/main.tex` y adopta el formato IEEE a dos columnas, con ecuaciones,
+tablas y figuras numeradas.
 
-Secciones: resumen; introducción; objetivos; planta/muestreo; modelo discreto y observador; acción integral; ganancias y polos; implementación PSoC; mediciones Rigol/UART; comparación MATLAB vs experimento; discusión y conclusiones apoyadas en cifras; bibliografía.
-
-Bibliografía principal: Samanta, Fadali–Visioli; Franklin y Ogata por la consigna; Åström & Murray para interpretación conceptual.
-
-NO presentar resultados de otros informes como mediciones propias; las conclusiones definitivas dependen de los CSV del Laboratorio 8.
+El documento reúne el modelado y la discretización, la selección del período
+de muestreo, el diseño integral con observador actual, la implementación en
+PSoC 5LP, las simulaciones MATLAB/Simulink, los ensayos UART/RIGOL y la
+comparación entre cálculo y experimento. Las cifras presentadas proceden de los
+CSV y las capturas físicas conservadas en este repositorio.

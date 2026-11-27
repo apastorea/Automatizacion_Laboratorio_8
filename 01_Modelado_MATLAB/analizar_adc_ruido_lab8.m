@@ -11,7 +11,7 @@
 % misma planta fisica en cascada.
 % Controlador y estimador se disenan directamente con el modelo identificado.
 % El LSB del ADC es una estimacion usada solo en el estudio de sensibilidad.
-% Las escalas del DAC se comprobaron en los codigos +3 y -5 del ensayo;
+% Las escalas del DAC coinciden con las constantes utilizadas por el firmware;
 % esta comprobacion no equivale a una calibracion multipunto del convertidor.
 % El ruido es hipotetico, blanco, gaussiano en unidades de salida de planta.
 % Metrica principal: error de la SALIDA FISICA simulada, NO de la medida.

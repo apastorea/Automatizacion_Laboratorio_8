@@ -2,13 +2,13 @@ function outputFolder = capturar_abierto_lab8(expectedStep_mV,label,serialPortNa
 %CAPTURAR_ABIERTO_LAB8 Captura UART y Rigol del pulso abierto de Lab 8.
 %   La captura conserva la pantalla original del osciloscopio, las ondas de
 %   CH1=J5 y CH2=J7 y la telemetria completa. El firmware debe estar en modo
-%   ABIERTO y configurado con el mismo escalon. Se admiten +/-50 mV para
-%   comprobar polaridad y +/-500 mV para el ensayo principal. El disparo se
-%   toma desde CH2, cuya transicion resulto mas limpia y repetible.
+%   ABIERTO y configurado con el mismo escalon. La adquisicion vigente usa
+%   +/-500 mV. El disparo se toma desde CH2, cuya transicion resulto mas
+%   limpia y repetible.
 %   Si SERIALPORTNAME se omite, se utiliza el único puerto serie disponible.
 
 arguments
-    expectedStep_mV (1,1) double {mustBeMember(expectedStep_mV,[-500 -50 50 500])}
+    expectedStep_mV (1,1) double {mustBeMember(expectedStep_mV,[-500 500])}
     label (1,1) string = "abierto_lab8"
     serialPortName (1,1) string = ""
 end
@@ -19,15 +19,9 @@ expectedMode = "ABIERTO";
 serialPortName = resolveSerialPort(serialPortName);
 baudRate = 57600;
 scopeTimeScale = 0.05;
-if abs(expectedStep_mV) <= 50
-    scopeCh1Scale = 0.05;
-    scopeCh2Scale = 0.05;
-    triggerMagnitude = 0.02;
-else
-    scopeCh1Scale = 0.20;
-    scopeCh2Scale = 0.20;
-    triggerMagnitude = 0.25;
-end
+scopeCh1Scale = 0.20;
+scopeCh2Scale = 0.20;
+triggerMagnitude = 0.25;
 armDelay = 2.75;
 forceTime = 3.45;
 
