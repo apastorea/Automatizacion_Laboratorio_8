@@ -1,5 +1,10 @@
 # Resultados — Simulación y validación física
 
+La planta ensayada es una sola cascada de segundo orden entre J5 y J7. U2.1 y
+U2.2 son sus dos etapas internas de primer orden; no constituyen dos plantas
+independientes. El modelo calculado y el identificado son dos representaciones
+de esa misma planta.
+
 Al ejecutar MATLAB desde `01_Modelado_MATLAB` se generan cuatro CSV de
 simulación, dos PNG comparativos y un resumen. Estos archivos no son resultados
 de banco.
@@ -11,37 +16,35 @@ posprocesado de la pantalla entregada por el DS1202Z-E. Los CSV fuente y los
 metadatos completos se mantienen en la carpeta fechada dentro de
 `04_Ensayos/Capturas_Sincronizadas/`.
 
-`resumen_abierto_pos_50mV.csv` resume la corrida física positiva del
-25/11/2026: 46 mV nominales, 47.6 mV medidos en J5, 43 mV tardíos por UART,
-ganancia 0.935, subida de 22 ms, 59 us máximos de ISR y cero banderas. Las
-figuras estables son `ensayo_abierto_pos_50mV.png` y
-`pantalla_rigol_abierto_pos_50mV_original.png`; esta última es una copia sin
-posprocesado de la pantalla propia del instrumento.
+La validación principal se completó con 500 mV. El pulso abierto positivo
+solicitó 500 mV, aplicó 507 mV nominales con código 33, alcanzó 492 mV por UART
+y 508 mV en CH2. No hubo banderas y el máximo tiempo de ISR fue 59 us. La
+captura original permanece en
+`04_Ensayos/Capturas_Sincronizadas/20261127_121349_269_abierto_pos_500mV_post_reconexion/`.
+La traza CH1 se conserva como dato crudo, pero no se emplea para calcular el
+mando porque su amplitud no coincidió con la conversión calibrada del DAC.
 
-`resumen_abierto_neg_50mV.csv` resume la corrida física negativa del mismo día:
--53 mV nominales, -54.0 mV medidos en J5, -49 mV tardíos por UART, ganancia
-0.925, subida de 24 ms, 59 us máximos de ISR y cero banderas. Las figuras
-estables son `ensayo_abierto_neg_50mV.png` y
-`pantalla_rigol_abierto_neg_50mV_original.png`.
+`resumen_integral_lento.csv` documenta la corrida principal del diseño lento:
+500 mV de referencia, 498 mV estacionarios, 2 mV de error, 2.980 mV RMS,
+12 ms de subida, 10.4 % de sobrepasamiento y mando nominal entre -190 mV y
+707 mV. No se registraron saturaciones, anti-windup ni fallas, y la ISR alcanzó
+119 us. La captura cruda está en
+`04_Ensayos/Capturas_Sincronizadas/20261127_121727_646_integral_lento_500mV_post_reconexion/`.
 
-`resumen_integral_lento.csv` documenta el primer cierre de lazo físico: 50 mV
-de referencia, 49 mV estacionarios, error de 1 mV, RMS de 3.209 mV, subida de
-16 ms, sobrepasamiento de 20 %, mando nominal entre -21 mV y 77 mV, cero
-saturaciones, cero bloqueos de anti-windup, cero fallas y 118 us máximos de ISR.
-Las figuras estables son `ensayo_integral_lento.png` y
-`pantalla_rigol_integral_lento_original.png`; la captura cruda fechada permanece
-en `04_Ensayos/Capturas_Sincronizadas/20261125_015059_578_integral_lento/`.
+`resumen_integral_rapido.csv` documenta la corrida principal del diseño rápido:
+500 mV de referencia, 498 mV estacionarios, 2 mV de error, 2.429 mV RMS,
+10 ms de subida, 14.6 % de sobrepasamiento y mando nominal entre -253 mV y
+769 mV. Tampoco hubo saturaciones, anti-windup o fallas; la ISR alcanzó 118 us.
+La captura cruda está en
+`04_Ensayos/Capturas_Sincronizadas/20261127_121849_376_integral_rapido_500mV_post_reconexion/`.
 
-`resumen_integral_rapido.csv` documenta la corrida separada del segundo diseño:
-50 mV de referencia, 48 mV estacionarios, error de 2 mV, RMS de 2.843 mV,
-subida de 12 ms, sobrepasamiento de 18 %, mando nominal entre -32 mV y 77 mV,
-cero saturaciones, cero bloqueos de anti-windup, cero fallas y 117 us máximos
-de ISR. Las figuras estables son `ensayo_integral_rapido.png` y
-`pantalla_rigol_integral_rapido_original.png`; la captura cruda fechada permanece
-en `04_Ensayos/Capturas_Sincronizadas/20261125_020830_577_integral_rapido/`.
-
-En toda futura corrida se deben conservar separados datos crudos y procesados,
-con procedencia, fecha, configuración de firmware y estado del banco.
+Las figuras estables `ensayo_integral_lento.png` y
+`ensayo_integral_rapido.png` muestran la salida UART, CH2 del RIGOL y el mando
+solicitado/nominal. Las pantallas originales se guardan por separado como
+`pantalla_rigol_integral_lento_original.png` y
+`pantalla_rigol_integral_rapido_original.png`. Las capturas de 50 mV se
+conservan como diagnóstico histórico de baja amplitud, no como evidencia
+principal del desempeño.
 
 ## Verificaciones de cierre
 

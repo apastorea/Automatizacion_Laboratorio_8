@@ -1,4 +1,11 @@
-/* lab5_hardware.h - Interfaz fisica heredada del Lab4. */
+/*
+ * lab5_hardware.h - Capa de acceso al hardware utilizada en el Laboratorio 8.
+ *
+ * El nombre del archivo se conserva por compatibilidad con la base del
+ * proyecto. La asignacion fisica comprobada en TopDesign es:
+ *   DAC_P -> Vout_2 -> P3[7] (pin fisico 37) -> J3
+ *   DAC_N -> Vout_3 -> P0[0]                  -> J2
+ */
 #ifndef LAB5_HARDWARE_H
 #define LAB5_HARDWARE_H
 

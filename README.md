@@ -1,8 +1,10 @@
-# Laboratorio 8 — Sistemas de seguimiento con control integral
+# Laboratorio 8 — Seguimiento integral de una planta en cascada
 
 Este repositorio contiene el diseño, la simulación y la validación experimental
 de dos controladores digitales con acción integral y estimador de estado actual
-para una planta analógica de segundo orden. El período de muestreo es de 2 ms y
+para una única planta analógica de segundo orden. La planta está formada por
+las etapas U2.1 y U2.2 conectadas en cascada entre J5 y J7. El período de
+muestreo es de 2 ms y
 los diseños se diferencian por el tercer polo del sistema ampliado: 0.60 para el
 controlador lento y 0.30 para el rápido.
 
@@ -12,26 +14,35 @@ El trabajo incluye:
 - comparación frente al modelo calculado a partir de los componentes;
 - simulaciones reproducibles en MATLAB y Simulink;
 - firmware PSoC 5LP con saturación, anti-windup, telemetría y parada segura;
-- ensayos MONITOR, escalones abiertos de ±50 mV y lazo cerrado con ambos
-  controladores;
+- selección documentada de una referencia de 500 mV a partir de la resolución
+  de medida, la cuantización del DAC y el margen del actuador;
+- protocolo de ensayos MONITOR, escalón abierto de +500 mV y lazo cerrado
+  con ambos controladores;
 - datos UART y RIGOL, capturas originales del osciloscopio y métricas procesadas;
 - informe IEEE escrito en LaTeX.
 
 ## Resultados principales
 
-El modelo identificado obtuvo un RMSE conjunto de 5.756 mV en los escalones de
-validación, frente a 6.772 mV del modelo de componentes. En lazo cerrado, el
-controlador lento alcanzó 49 mV ante una referencia de 50 mV, con subida de
-16 ms, sobrepasamiento de 20 % y error RMS de 3.209 mV. El rápido alcanzó
-48 mV, con subida de 12 ms, sobrepasamiento de 18 % y error RMS de 2.843 mV.
-No se registraron saturaciones, bloqueos de anti-windup ni fallas.
+El modelo identificado obtuvo un RMSE conjunto de 5.756 mV en las capturas
+preliminares, frente a 6.772 mV del modelo calculado a partir de los
+componentes. El barrido de amplitudes seleccionó 500 mV para la validación
+principal: en simulación con el modelo identificado, el mayor esfuerzo fue
+0.745 V, con 25.5 % de margen respecto del límite de 1 V y sin saturación. A
+esta escala, un paso del DAC positivo representa 3.07 % de la referencia y el
+RMSE de lectura caracterizado representa 0.675 %.
+
+Las corridas físicas principales se realizaron con 500 mV. La verificación
+abierta aplicó 507 mV nominales, obtuvo 492 mV por UART y 508 mV en CH2. En
+lazo cerrado, los diseños lento y rápido alcanzaron 498 mV, con 2 mV de error
+estacionario; sus tiempos de subida fueron 12 ms y 10 ms, y sus
+sobrepasamientos, 10.4 % y 14.6 %. No hubo saturaciones, activaciones de
+anti-windup ni banderas de falla.
 
 El período medido permaneció entre 1999 y 2001 us. El peor tiempo de ISR fue
-118 us, equivalente al 5.9 % del período. Las escalas del DAC en los códigos de
-trabajo difirieron 3.23 % en la rama positiva y 2.27 % en la negativa respecto
-de los valores del modelo. Al finalizar, la placa quedó programada en modo
-`MONITOR`, con ambos DAC en cero y todos los enclavamientos de actuación
-deshabilitados.
+119 us, equivalente al 5.95 % del período. Las capturas físicas de 50 mV se
+conservan sólo como diagnóstico de polaridad y baja amplitud. Al finalizar, la
+placa quedó programada en modo `MONITOR`, con ambos DAC en cero y todos los
+enclavamientos de actuación deshabilitados.
 
 ## Estructura
 

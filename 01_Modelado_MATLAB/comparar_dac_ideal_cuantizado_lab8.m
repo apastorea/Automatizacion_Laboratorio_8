@@ -13,18 +13,18 @@ fprintf('\n=== LABORATORIO 8 | DAC IDEAL vs CUANTIZADO (SIMULACION) ===\n');
 Ts = 0.002; N = 600;
 t = (0:N-1)'*Ts;
 r = zeros(N,1);
-r(33:333) = 0.050;       % r=50 mV desde t=64 hasta t=664 ms
+r(33:333) = 0.500;       % r=500 mV desde t=64 hasta t=664 ms
 p_control = [0.80+0.25i, 0.80-0.25i];
 p_integral = [0.60, 0.30];          % lento / rapido
 p_obs = [0.20+0.10i, 0.20-0.10i];   % observador ACTUAL E2
 disenos = {'integral_lento','integral_rapido'};
-plantas = {'nominal','identificada'};
+modelos = {'nominal','identificado'};
 
 % Limites del mando y escalas comprobadas en los codigos de ensayo.
-lim.u_min = -0.115;   lim.u_max = 0.107;  % precuantizacion, V
+lim.u_min = -1.000;   lim.u_max = 1.000;  % precuantizacion, V
 lim.q_pos = 0.015370448;                  % V / codigo (positivo)
 lim.q_neg = 0.010560423;                  % V / codigo (negativo)
-lim.cod_pos = 7; lim.cod_neg = 11;
+lim.cod_pos = 65; lim.cod_neg = 95;
 lim.antiwindup = true;
 
 %% 2. Planta nominal (mismo orden de estados del script original)
@@ -88,9 +88,9 @@ for i = 1:2
         mI = calcular_residual(ideal,r,idx,false);
         mQ = calcular_residual(cuant,r,idx,true);
         etiqueta = string(disenos{i});
-        modelo = string(plantas{j});
+        modelo = string(modelos{j});
 
-        fprintf('  Planta %s\n',plantas{j});
+        fprintf('  Modelo de planta %s\n',modelos{j});
         fprintf('    Ideal: RMS %.6g mV | pico-pico %.6g mV | banda %.2f%%\n', ...
             mI.rms_mV,mI.ypico_pico_mV,mI.banda_pct);
         fprintf('    Cuant: RMS %.6g mV | pico-pico %.6g mV | banda %.2f%% | niveles %d\n', ...
@@ -107,7 +107,7 @@ for i = 1:2
                 m.error_medio_mV,m.rms_mV,m.error_max_mV, ...
                 m.ypico_pico_mV,m.banda_pct,m.niveles, ...
                 nnz(S.saturado),1000*max(abs(S.u)), ...
-                'VariableNames',{'diseno','planta','DAC','polo_integral', ...
+                'VariableNames',{'diseno','modelo','DAC','polo_integral', ...
                 'error_medio_mV','error_RMS_mV','error_max_mV', ...
                 'salida_pp_mV','muestras_banda_2pct','niveles_DAC', ...
                 'saturaciones','mando_max_abs_mV'});
@@ -120,7 +120,7 @@ for i = 1:2
             'VariableNames',{'t_s','r_V','y_ideal_V','y_cuant_V', ...
             'u_ideal_V','u_cuant_V','u_solicitado_ideal_V', ...
             'u_solicitado_cuant_V','xi_ideal_V','xi_cuant_V'});
-        pref = [disenos{i},'_',plantas{j}];
+        pref = [disenos{i},'_',modelos{j}];
         writetable(datos,fullfile(salida,[pref,'.csv']));
 
         % Tres paneles para distinguir transitorio, regimen y mando.
@@ -133,17 +133,17 @@ for i = 1:2
         stairs(t*1000,cuant.y*1000,'LineWidth',1.1);
         xlim([0 760]); grid on;
         title(sprintf('%s / %s — respuesta completa', ...
-            strrep(disenos{i},'_',' '),plantas{j}));
+            strrep(disenos{i},'_',' '),modelos{j}));
         ylabel('Salida [mV]');
         legend('Referencia','DAC ideal','DAC cuantizado','Location','best');
 
         nexttile; hold on;
         stairs(t*1000,ideal.y*1000,'LineWidth',1.2);
         stairs(t*1000,cuant.y*1000,'LineWidth',1.1);
-        yline(50,'k--','Referencia');
-        yline(51,':','Limite +2%');
-        yline(49,':','Limite -2%');
-        xlim([540 670]); ylim([45 55]); grid on;
+        yline(500,'k--','Referencia');
+        yline(510,':','Limite +2%');
+        yline(490,':','Limite -2%');
+        xlim([540 670]); ylim([470 530]); grid on;
         ylabel('Salida [mV]');
         title('Detalle de regimen permanente (550 a 660 ms)');
 
@@ -162,14 +162,10 @@ end
 disp(' ');
 disp('=== RESUMEN DE LAS OCHO SIMULACIONES ===');
 disp(resumen);
-% Control de reproduccion del rediseno basado en el modelo identificado.
-% Orden: lento/nominal, lento/identificada, rapido/nominal, rapido/identificada.
-rms_referencia = [2.0880;3.0793;0.8575;1.5417];
-rms_cuantizado = resumen.error_RMS_mV(resumen.DAC=="cuantizado");
-desvio = max(abs(rms_cuantizado-rms_referencia));
-fprintf('Comprobacion de reproducibilidad: desviacion RMS maxima = %.5f mV\n',desvio);
-assert(desvio<0.02, ...
-   'El DAC cuantizado no reproduce el baseline identificado: revisar parametros.');
+% Verificacion coherente con el criterio experimental de 500 mV.
+assert(height(resumen)==8,'El resumen debe contener ocho casos.');
+assert(all(resumen.saturaciones==0), ...
+   'La referencia de 500 mV no debe producir saturacion en la simulacion.');
 writetable(resumen,fullfile(salida,'resumen_ideal_vs_cuantizado.csv'));
 fprintf('\nResultados de simulacion guardados en:\n%s\n',salida);
 fprintf('Simulacion finalizada; los resultados experimentales se procesan por separado.\n');
@@ -229,7 +225,7 @@ function m = calcular_residual(S,r,idx,esCuant)
     m.rms_mV = 1000*sqrt(mean(error.^2));
     m.error_max_mV = 1000*max(abs(error));
     m.ypico_pico_mV = 1000*(max(salida)-min(salida));
-    m.banda_pct = 100*mean(abs(error)<=0.001); % ±1 mV para 50 mV
+    m.banda_pct = 100*mean(abs(error)<=0.010); % ±10 mV: banda de 2 %
     if esCuant
         m.niveles = numel(unique(S.u(idx)));
     else

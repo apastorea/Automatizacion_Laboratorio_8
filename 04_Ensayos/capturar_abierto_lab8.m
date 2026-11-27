@@ -1,31 +1,42 @@
-function outputFolder = capturar_abierto_lab8(expectedStep_mV,label)
+function outputFolder = capturar_abierto_lab8(expectedStep_mV,label,serialPortName)
 %CAPTURAR_ABIERTO_LAB8 Captura UART y Rigol del pulso abierto de Lab 8.
 %   La captura conserva la pantalla original del osciloscopio, las ondas de
 %   CH1=J5 y CH2=J7 y la telemetria completa. El firmware debe estar en modo
-%   ABIERTO y configurado con el mismo escalon de +50 mV o -50 mV.
+%   ABIERTO y configurado con el mismo escalon. Se admiten +/-50 mV para
+%   comprobar polaridad y +/-500 mV para el ensayo principal. El disparo se
+%   toma desde CH2, cuya transicion resulto mas limpia y repetible.
+%   Si SERIALPORTNAME se omite, se utiliza el único puerto serie disponible.
 
 arguments
-    expectedStep_mV (1,1) double {mustBeMember(expectedStep_mV,[-50 50])}
+    expectedStep_mV (1,1) double {mustBeMember(expectedStep_mV,[-500 -50 50 500])}
     label (1,1) string = "abierto_lab8"
+    serialPortName (1,1) string = ""
 end
 
 expectedRows = 600;
 expectedPulseSamples = 96;
 expectedMode = "ABIERTO";
-serialPortName = "COM4";
+serialPortName = resolveSerialPort(serialPortName);
 baudRate = 57600;
 scopeTimeScale = 0.05;
-scopeCh1Scale = 0.02;
-scopeCh2Scale = 0.02;
+if abs(expectedStep_mV) <= 50
+    scopeCh1Scale = 0.05;
+    scopeCh2Scale = 0.05;
+    triggerMagnitude = 0.02;
+else
+    scopeCh1Scale = 0.20;
+    scopeCh2Scale = 0.20;
+    triggerMagnitude = 0.25;
+end
 armDelay = 2.75;
 forceTime = 3.45;
 
 if expectedStep_mV > 0
     triggerSlope = "POS";
-    triggerLevel = 0.035;
+    triggerLevel = triggerMagnitude;
 else
     triggerSlope = "NEG";
-    triggerLevel = -0.010;
+    triggerLevel = -triggerMagnitude;
 end
 
 scriptFolder = fileparts(mfilename("fullpath"));
@@ -152,7 +163,7 @@ uRequested = double(T.u_solicitada_mV);
 uNominal = double(T.u_nominal_mV);
 dacPositive = double(T.dac_pos);
 dacNegative = double(T.dac_neg);
-pulseMask = abs(uRequested) >= 25;
+pulseMask = abs(uRequested) >= 0.5*abs(expectedStep_mV);
 assert(nnz(pulseMask)>0,"La telemetria no contiene el pulso abierto.");
 pulseIndices = find(pulseMask);
 latePulse = pulseIndices(max(1,end-23):end);
@@ -181,9 +192,11 @@ stepMatches = detectedStep_mV==expectedStep_mV && ...
     sign(uartSummary.requestedPulseMedian_mV)==sign(expectedStep_mV) && ...
     abs(uartSummary.requestedPulseMedian_mV-expectedStep_mV)<=1;
 responseSignValid = sign(deltaY_uart_mV)==sign(expectedStep_mV) && ...
-    abs(deltaY_uart_mV)>=10 && abs(deltaY_uart_mV)<=100;
+    abs(deltaY_uart_mV)>=0.70*abs(expectedStep_mV) && ...
+    abs(deltaY_uart_mV)<=1.30*abs(expectedStep_mV);
 scopeSignValid = sign(scopeMetrics.deltaCH1_mV)==sign(expectedStep_mV) && ...
-    abs(scopeMetrics.deltaCH1_mV)>=20 && abs(scopeMetrics.deltaCH1_mV)<=100;
+    abs(scopeMetrics.deltaCH1_mV)>=0.75*abs(expectedStep_mV) && ...
+    abs(scopeMetrics.deltaCH1_mV)<=1.25*abs(expectedStep_mV);
 preliminaryValid = startupDetected && armed && finished && ...
     detectedMode==expectedMode && height(T)==expectedRows && ...
     uartSummary.nonzeroFlags==0 && scopeFinished && ...
@@ -208,7 +221,8 @@ metadata.forcedTrigger = forcedTrigger;
 metadata.stateBeforeForce = stateBeforeForce;
 metadata.scopeConfiguration = struct("time_s_div",scopeTimeScale, ...
     "ch1_V_div",scopeCh1Scale,"ch2_V_div",scopeCh2Scale, ...
-    "triggerSlope",triggerSlope,"trigger_V",triggerLevel, ...
+    "triggerSource","CHAN2","triggerSlope",triggerSlope, ...
+    "trigger_V",triggerLevel, ...
     "acquisition","HRES","armDelay_s",armDelay,"forceTime_s",forceTime);
 metadata.uart = uartSummary;
 metadata.scope = scopeMetrics;
@@ -248,7 +262,7 @@ commands = [
     ":TIM:OFFS 0"
     ":ACQ:TYPE HRES"
     ":TRIG:MODE EDGE"
-    ":TRIG:EDGE:SOUR CHAN1"
+    ":TRIG:EDGE:SOUR CHAN2"
     ":TRIG:EDGE:SLOP " + slope
     ":TRIG:EDGE:LEV " + compose("%.9g",level)
     ":TRIG:SWE NORM"
@@ -305,4 +319,21 @@ function clearInstrument(instrument)
 if ~isempty(instrument)
     clear instrument
 end
+end
+
+function serialPortName = resolveSerialPort(requestedPort)
+availablePorts = string(serialportlist("available"));
+assert(~isempty(availablePorts),"No hay puertos serie disponibles.");
+if strlength(requestedPort)>0
+    match = strcmpi(availablePorts,requestedPort);
+    assert(nnz(match)==1, ...
+        "El puerto %s no está disponible. Puertos detectados: %s.", ...
+        requestedPort,strjoin(availablePorts,", "));
+    serialPortName = availablePorts(match);
+    return
+end
+assert(isscalar(availablePorts), ...
+    "Hay varios puertos disponibles (%s). Indique el puerto del KitProg.", ...
+    strjoin(availablePorts,", "));
+serialPortName = availablePorts;
 end

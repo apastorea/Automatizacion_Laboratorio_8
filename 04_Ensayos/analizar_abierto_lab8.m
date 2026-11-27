@@ -15,7 +15,7 @@ end
 
 if strlength(captureFolder)==0
     candidates = dir(fullfile(scriptFolder,"Capturas_Sincronizadas", ...
-        "*_abierto_*_50mV"));
+        "*_abierto_*_500mV"));
     assert(~isempty(candidates),"No hay capturas de lazo abierto.");
     [~,order] = sort([candidates.datenum],"descend");
     captureFolder = string(fullfile(candidates(order(1)).folder, ...
@@ -38,8 +38,8 @@ assert(height(T)==600 && all(double(T.k)==(0:599).'), ...
     "La telemetria no contiene 600 indices consecutivos.");
 assert(nnz(double(T.flags))==0,"La captura contiene banderas de fallo.");
 step_mV = double(meta.detectedStep_mV);
-assert(meta.detectedMode=="ABIERTO" && ismember(step_mV,[-50 50]), ...
-    "La captura no corresponde a un ensayo ABIERTO de +/-50 mV.");
+assert(meta.detectedMode=="ABIERTO" && ismember(step_mV,[-500 -50 50 500]), ...
+    "La captura no corresponde a un ensayo ABIERTO reconocido.");
 
 metrics = metricas_rigol_abierto_lab8(ch1,ch2,step_mV);
 uRequested = double(T.u_solicitada_mV);
@@ -48,7 +48,7 @@ yRelative = double(T.y_rel_mV);
 time_us = double(T.t_us);
 period_us = double(T.intervalo_us);
 cpu_us = double(T.cpu_us);
-pulseMask = sign(step_mV).*uRequested>25;
+pulseMask = sign(step_mV).*uRequested>0.5*abs(step_mV);
 pulseIndices = find(pulseMask);
 assert(numel(pulseIndices)==96,"El pulso no dura las 96 muestras esperadas.");
 
@@ -80,12 +80,12 @@ resumen = table( ...
     "period_median_us","period_min_us","period_max_us","cpu_max_us", ...
     "nonzero_flags","valid"]);
 polarityName = "pos";
-polarityTitle = "+50";
+amplitudeTag = compose("%.0fmV",abs(step_mV));
+polarityTitle = compose("%+.0f",step_mV);
 if step_mV<0
     polarityName = "neg";
-    polarityTitle = "-50";
 end
-summaryName = "resumen_abierto_"+polarityName+"_50mV.csv";
+summaryName = "resumen_abierto_"+polarityName+"_"+amplitudeTag+".csv";
 writetable(resumen,fullfile(resultsFolder,summaryName));
 
 scopePulseStart = metrics.pulseStart_s;
@@ -114,7 +114,8 @@ xline(ax,192,":","Fin",LabelVerticalAlignment="bottom", ...
     HandleVisibility="off");
 hold(ax,"off");
 xlim(ax,[-60 260]);
-ylim(ax,[-75 75]);
+plotLimit_mV = 1.35*abs(step_mV);
+ylim(ax,[-plotLimit_mV plotLimit_mV]);
 xlabel(ax,"Tiempo relativo al pulso (ms)");
 ylabel(ax,"Tension incremental (mV)");
 title(ax,"Ensayo abierto: pulso de "+polarityTitle+" mV");
@@ -124,13 +125,13 @@ ax.FontName = "Times New Roman";
 ax.FontSize = 10;
 legend(ax,"Location","northeast","Box","off");
 exportgraphics(ax,fullfile(figuresFolder, ...
-    "ensayo_abierto_"+polarityName+"_50mV.png"), ...
+    "ensayo_abierto_"+polarityName+"_"+amplitudeTag+".png"), ...
     Resolution=300);
 close(fig);
 
 copyfile(fullfile(captureFolder,"pantalla_rigol_original.png"), ...
     fullfile(figuresFolder, ...
-    "pantalla_rigol_abierto_"+polarityName+"_50mV_original.png"));
+    "pantalla_rigol_abierto_"+polarityName+"_"+amplitudeTag+"_original.png"));
 
 fprintf("ENSAYO_ABIERTO_VALIDO: u=%.1f mV; J5=%.1f mV; " + ...
     "y_UART=%.1f mV; J7_Rigol=%.1f mV; K_UART=%.3f; tr=%.1f ms.\n", ...

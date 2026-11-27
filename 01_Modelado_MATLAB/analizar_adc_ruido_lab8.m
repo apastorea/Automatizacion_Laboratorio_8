@@ -7,7 +7,8 @@
 %   3) ADC cuantizado + ruido equivalente de 1 mV RMS.
 %   4) ADC cuantizado + ruido equivalente de 3 mV RMS.
 %
-% Mantiene Ts=2 ms, dos polos integrales, E2 actual y ambas plantas.
+% Mantiene Ts=2 ms, dos polos integrales, E2 actual y dos modelos de la
+% misma planta fisica en cascada.
 % Controlador y estimador se disenan directamente con el modelo identificado.
 % El LSB del ADC es una estimacion usada solo en el estudio de sensibilidad.
 % Las escalas del DAC se comprobaron en los codigos +3 y -5 del ensayo;
@@ -23,13 +24,13 @@ Ts=0.002;
 N=600;
 t=(0:N-1)'*Ts;
 r=zeros(N,1);
-r(33:333)=0.050;                 % Referencia 50 mV desde 64 a 664 ms
+r(33:333)=0.500;                 % Referencia 500 mV desde 64 a 664 ms
 regimen=(t>=0.550 & t<=0.660 & r>0);
 p_ctrl=[0.80+0.25i, 0.80-0.25i];
 p_integral=[0.60, 0.30];
 p_obs=[0.20+0.10i, 0.20-0.10i];
 nombres={'integral_lento','integral_rapido'};
-modelos={'nominal','identificada'};
+modelos={'nominal','identificado'};
 escenarios={'DAC_solo','ADC_sin_ruido','ADC_ruido_1mV','ADC_ruido_3mV'};
 niveles_ruido=[0,0,1,3];         % mV RMS hipoteticos
 usar_adc=[false,true,true,true];
@@ -37,9 +38,9 @@ repeticiones_ruido=20;
 semilla=20261124;
 
 % Parametros usados por el firmware y comprobados en el punto de trabajo.
-lim.u_min=-0.115; lim.u_max=+0.107;
+lim.u_min=-1.000; lim.u_max=+1.000;
 lim.q_pos=0.015370448; lim.q_neg=0.010560423;
-lim.cod_pos=7; lim.cod_neg=11;
+lim.cod_pos=65; lim.cod_neg=95;
 lim.antiwindup=true;
 adc.volt_por_volt_planta=0.210251951;
 adc.paso_ADC_mV=1.14;           % APROXIMADO, NO calibracion nueva
@@ -49,7 +50,7 @@ fprintf('ADC asumido: %.3f mV/cuenta en ADC; %.3f mV/cuenta referido a planta\n'
     adc.paso_ADC_mV,1000*adc.paso_y_V);
 fprintf('Ruido simulado (RMS salida): 0, 1, 3 mV. Monte Carlo=%d\n',repeticiones_ruido);
 
-% Reutilizar la MISMA secuencia de ruido normalizada para ambas plantas
+% Reutilizar la MISMA secuencia de ruido normalizada para ambos modelos
 % y controladores, de manera que la comparacion sea justa.
 rng(semilla,'twister');
 ruido_estandar=randn(N,repeticiones_ruido);
@@ -120,7 +121,7 @@ for i=1:2
                      m.error_RMS_mV,m.error_max_mV,m.error_medio_mV, ...
                      m.salida_pp_mV,m.banda_pct,m.mando_max_mV, ...
                      m.saturaciones, ...
-                     'VariableNames',{'diseno','planta','escenario','repeticion', ...
+                     'VariableNames',{'diseno','modelo','escenario','repeticion', ...
                      'error_RMS_mV','error_max_mV','error_medio_mV', ...
                      'salida_pp_mV','muestras_banda_2pct','mando_max_abs_mV', ...
                      'saturaciones'});
@@ -131,14 +132,14 @@ for i=1:2
             end
 
             sub=detalle(detalle.diseno==string(nombres{i}) & ...
-                detalle.planta==string(modelos{j}) & ...
+                detalle.modelo==string(modelos{j}) & ...
                 detalle.escenario==string(escenarios{e}),:);
             fila=table(string(nombres{i}),string(modelos{j}), ...
                 string(escenarios{e}),niveles_ruido(e),rep, ...
                 mean(sub.error_RMS_mV),max(sub.error_RMS_mV), ...
                 mean(sub.error_max_mV),mean(sub.salida_pp_mV), ...
                 mean(sub.muestras_banda_2pct),max(sub.saturaciones), ...
-                'VariableNames',{'diseno','planta','escenario', ...
+                'VariableNames',{'diseno','modelo','escenario', ...
                 'ruido_RMS_hipotetico_mV','repeticiones', ...
                 'error_RMS_prom_mV','error_RMS_peor_mV', ...
                 'error_max_prom_mV','salida_pp_prom_mV', ...
@@ -148,20 +149,20 @@ for i=1:2
     end
 end
 
-%% 4. Comprobacion de regresion: ADC ideal = baseline identificado
-% Se repite el DAC cuantizado sin cuantizacion ADC.
-esperados=[2.0880,3.0793;0.8575,1.5417];  % filas lento/rapido
+%% 4. Comprobacion interna del caso base
+% Se repite el DAC cuantizado sin cuantizacion ADC y se verifica que la
+% referencia seleccionada no active la saturacion en ninguno de los casos.
 for i=1:2
     for j=1:2
         idx=resumen.diseno==string(nombres{i}) & ...
-            resumen.planta==string(modelos{j}) & ...
+            resumen.modelo==string(modelos{j}) & ...
             resumen.escenario=="DAC_solo";
         obtenido=resumen.error_RMS_prom_mV(idx);
         assert(isscalar(obtenido),'Error en el indice de regresion.');
-        fprintf('BASELINE %s/%s: %.4f mV (esperado %.4f)\n', ...
-            nombres{i},modelos{j},obtenido,esperados(i,j));
-        assert(abs(obtenido-esperados(i,j))<0.02, ...
-          'La simulacion base no coincide con la prueba anterior.');
+        fprintf('CASO BASE %s/%s: RMS %.4f mV\n', ...
+            nombres{i},modelos{j},obtenido);
+        assert(resumen.max_saturaciones(idx)==0, ...
+          'La referencia de 500 mV produjo saturacion en el caso base.');
     end
 end
 
@@ -184,15 +185,15 @@ for j=1:2
     end
     grid on;xlim([0 760]);
     ylabel('Salida fisica simulada [mV]');
-    title(['ADC cuantizado + ruido 3 mV RMS - planta ' modelos{j}]);
+    title(['ADC cuantizado + ruido 3 mV RMS - modelo ' modelos{j}]);
     legend('Referencia','Integral lento','Integral rapido','Location','best');
     nexttile;hold on;
     stairs(t*1000,curvas{1,j,4}.y*1000,'LineWidth',1.1);
     stairs(t*1000,curvas{2,j,4}.y*1000,'LineWidth',1.1);
-    yline(50,'k--','Referencia');
-    yline(49,'k:','-2%');
-    yline(51,'k:','+2%');
-    grid on;xlim([540 660]);ylim([35 65]);
+    yline(500,'k--','Referencia');
+    yline(490,'k:','-2%');
+    yline(510,'k:','+2%');
+    grid on;xlim([540 660]);ylim([470 530]);
     xlabel('Tiempo [ms]');ylabel('Salida fisica [mV]');
     exportgraphics(f,fullfile(figdir,['ruido_3mV_' modelos{j} '.png']), ...
         'Resolution',220);
@@ -202,7 +203,7 @@ for j=1:2
     for e=1:4
         for i=1:2
             idx=resumen.diseno==string(nombres{i}) & ...
-                resumen.planta==string(modelos{j}) & ...
+                resumen.modelo==string(modelos{j}) & ...
                 resumen.escenario==string(escenarios{e});
             valores(e,i)=resumen.error_RMS_prom_mV(idx);
         end
@@ -269,7 +270,7 @@ function m=calcular_metricas(S,r,idx)
     m.error_max_mV=1000*max(abs(e));
     m.error_medio_mV=1000*mean(e);
     m.salida_pp_mV=1000*(max(y)-min(y));
-    m.banda_pct=100*mean(abs(e)<=0.001);
+    m.banda_pct=100*mean(abs(e)<=0.010);
     m.mando_max_mV=1000*max(abs(S.u));
     m.saturaciones=nnz(S.saturado);
 end

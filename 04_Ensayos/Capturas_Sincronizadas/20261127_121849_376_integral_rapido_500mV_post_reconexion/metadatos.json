@@ -1,0 +1,76 @@
+{
+    "capturedAt": "2026-11-27T12:19:54-03:00",
+    "expectedMode": "INTEGRAL",
+    "detectedMode": "INTEGRAL",
+    "expectedDesign": "RAPIDO",
+    "detectedDesign": "RAPIDO",
+    "resource": "USB0::0x1AB1::0x0517::DS1ZE275014864::0::INSTR",
+    "serialPort": "COM9",
+    "baudRate": 57600.0,
+    "scopeState": "STOP",
+    "scopeFinished": true,
+    "originalScopeImage": "pantalla_rigol_original.png",
+    "forcedTrigger": false,
+    "stateBeforeForce": "TD",
+    "scopeConfiguration": {
+        "time_s_div": 0.2,
+        "ch1_V_div": 0.5,
+        "ch2_V_div": 0.2,
+        "triggerSlope": "POS",
+        "trigger_V": 0.1,
+        "acquisition": "HRES",
+        "armDelay_s": 2.75,
+        "forceTime_s": 4.35
+    },
+    "uart": {
+        "rows": 600.0,
+        "fatalFlagSamples": 0.0,
+        "saturationSamples": 0.0,
+        "antiwindupSamples": 0.0,
+        "maxCpu_us": 118.0,
+        "medianPeriod_us": 2000.0,
+        "minPeriod_us": 1999.0,
+        "maxPeriod_us": 2001.0,
+        "referenceSamples": 301.0,
+        "steadyY_mV": 498.0,
+        "postReturnY_mV": 0.0,
+        "maxAbsY_mV": 573.0,
+        "maxRequested_mV": 766.0,
+        "minRequested_mV": -250.0,
+        "maxNominal_mV": 769.0,
+        "minNominal_mV": -253.0
+    },
+    "scope": {
+        "baselineCH1_mV": 140.0,
+        "baselineCH2_mV": 76.00000000000001,
+        "deltaCH2_mV": 548.0,
+        "returnCH2_mV": 23.999999999999993,
+        "maxCH1Increment_mV": 2420.0,
+        "minCH1Increment_mV": -2440.0000000000005
+    },
+    "waveformDetails": {
+        "CH1": {
+            "points": 1200.0,
+            "xIncrement_s": 0.002,
+            "xOrigin_s": -1.2,
+            "yIncrement_V": 0.02,
+            "yOrigin": 0.0,
+            "yReference": 127.0
+        },
+        "CH2": {
+            "points": 1200.0,
+            "xIncrement_s": 0.002,
+            "xOrigin_s": -1.2,
+            "yIncrement_V": 0.008,
+            "yOrigin": 50.0,
+            "yReference": 127.0
+        }
+    },
+    "checks": {
+        "modeMatches": true,
+        "timingValid": true,
+        "responseValid": true,
+        "scopeValid": true
+    },
+    "preliminaryValid": true
+}

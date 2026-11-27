@@ -1,20 +1,25 @@
-function outputFolder = capturar_integral_lab8(expectedDesign,label)
+function outputFolder = capturar_integral_lab8(expectedDesign,label,serialPortName)
 %CAPTURAR_INTEGRAL_LAB8 Captura segura del lazo integral de Lab 8.
 %   Registra UART, CH1=J5, CH2=J7 y la pantalla original del RIGOL. El
-%   firmware debe anunciar modo INTEGRAL y el diseno solicitado.
+%   firmware debe anunciar modo INTEGRAL y el diseno solicitado. El disparo
+%   se toma desde CH2 para evitar que el ruido del punto de mando domine la
+%   sincronizacion de la pantalla.
 
 arguments
     expectedDesign (1,1) string {mustBeMember(expectedDesign,["LENTO" "RAPIDO"])}
     label (1,1) string = "integral_lab8"
+    serialPortName (1,1) string = ""
 end
 
 expectedRows = 600;
 expectedMode = "INTEGRAL";
-serialPortName = "COM4";
+serialPortName = resolveSerialPort(serialPortName);
 baudRate = 57600;
 scopeTimeScale = 0.20;
-scopeCh1Scale = 0.05;
-scopeCh2Scale = 0.02;
+% A 0.20 V/div caben los transitorios previstos sin perder resolucion.
+scopeCh1Scale = 0.20;
+scopeCh2Scale = 0.20;
+triggerLevel = 0.25;
 armDelay = 2.75;
 forceTime = 4.35;
 fatalMask = 63; % ADC, DAC fisico, numerico, CPU, tiempo o salida.
@@ -36,7 +41,7 @@ scope = visadev(resourceName);
 scope.Timeout = 20;
 scope.ByteOrder = "little-endian";
 cleanupScope = onCleanup(@() clearInstrument(scope));
-configureScope(scope,scopeTimeScale,scopeCh1Scale,scopeCh2Scale);
+configureScope(scope,scopeTimeScale,scopeCh1Scale,scopeCh2Scale,triggerLevel);
 
 port = serialport(serialPortName,baudRate,Timeout=1);
 configureTerminator(port,"LF");
@@ -138,7 +143,10 @@ yRelative = double(T.y_rel_mV);
 reference = double(T.r_mV);
 uRequested = double(T.u_solicitada_mV);
 uNominal = double(T.u_nominal_mV);
-referenceMask = reference>25;
+referenceLevel_mV = max(reference);
+assert(referenceLevel_mV>=490 && referenceLevel_mV<=510, ...
+    "La telemetria no anuncia la referencia esperada de 500 mV.");
+referenceMask = reference>0.5*referenceLevel_mV;
 postMask = double(T.k)>=550;
 fatalFlags = bitand(uint16(flags),uint16(fatalMask));
 satSamples = nnz(bitand(uint16(flags),uint16(64))~=0);
@@ -162,10 +170,13 @@ uartSummary = struct( ...
 modeMatches = detectedMode==expectedMode && detectedDesign==expectedDesign;
 timingValid = uartSummary.minPeriod_us>=1800 && ...
     uartSummary.maxPeriod_us<=2200 && uartSummary.maxCpu_us<2000;
-responseValid = steadyY_mV>=20 && steadyY_mV<=80 && ...
-    uartSummary.maxAbsY_mV<=150 && abs(postY_mV)<=25;
-scopeValid = scopeMetrics.deltaCH2_mV>=10 && ...
-    scopeMetrics.deltaCH2_mV<=120 && abs(scopeMetrics.returnCH2_mV)<=30;
+responseValid = steadyY_mV>=0.85*referenceLevel_mV && ...
+    steadyY_mV<=1.15*referenceLevel_mV && ...
+    uartSummary.maxAbsY_mV<=1.30*referenceLevel_mV && ...
+    abs(postY_mV)<=0.10*referenceLevel_mV;
+scopeValid = scopeMetrics.deltaCH2_mV>=0.75*referenceLevel_mV && ...
+    scopeMetrics.deltaCH2_mV<=1.25*referenceLevel_mV && ...
+    abs(scopeMetrics.returnCH2_mV)<=0.10*referenceLevel_mV;
 preliminaryValid = startupDetected && armed && finished && scopeFinished && ...
     modeMatches && height(T)==expectedRows && nnz(referenceMask)==301 && ...
     uartSummary.fatalFlagSamples==0 && timingValid && responseValid && scopeValid;
@@ -187,7 +198,8 @@ metadata.forcedTrigger = forcedTrigger;
 metadata.stateBeforeForce = stateBeforeForce;
 metadata.scopeConfiguration = struct("time_s_div",scopeTimeScale, ...
     "ch1_V_div",scopeCh1Scale,"ch2_V_div",scopeCh2Scale, ...
-    "triggerSlope","POS","trigger_V",0.010, ...
+    "triggerSource","CHAN2","triggerSlope","POS", ...
+    "trigger_V",triggerLevel, ...
     "acquisition","HRES","armDelay_s",armDelay,"forceTime_s",forceTime);
 metadata.uart = uartSummary;
 metadata.scope = scopeMetrics;
@@ -208,7 +220,7 @@ assert(preliminaryValid, ...
 clear cleanupPort cleanupScope
 end
 
-function configureScope(scope,timeScale,ch1Scale,ch2Scale)
+function configureScope(scope,timeScale,ch1Scale,ch2Scale,triggerLevel)
 commands = [
     ":STOP"
     ":CHAN1:DISP ON"
@@ -226,9 +238,9 @@ commands = [
     ":TIM:OFFS 0"
     ":ACQ:TYPE HRES"
     ":TRIG:MODE EDGE"
-    ":TRIG:EDGE:SOUR CHAN1"
+    ":TRIG:EDGE:SOUR CHAN2"
     ":TRIG:EDGE:SLOP POS"
-    ":TRIG:EDGE:LEV 0.010"
+    ":TRIG:EDGE:LEV " + compose("%.9g",triggerLevel)
     ":TRIG:SWE NORM"
     ];
 for command = commands.'
@@ -305,4 +317,21 @@ function clearInstrument(instrument)
 if ~isempty(instrument)
     clear instrument
 end
+end
+
+function serialPortName = resolveSerialPort(requestedPort)
+availablePorts = string(serialportlist("available"));
+assert(~isempty(availablePorts),"No hay puertos serie disponibles.");
+if strlength(requestedPort)>0
+    match = strcmpi(availablePorts,requestedPort);
+    assert(nnz(match)==1, ...
+        "El puerto %s no está disponible. Puertos detectados: %s.", ...
+        requestedPort,strjoin(availablePorts,", "));
+    serialPortName = availablePorts(match);
+    return
+end
+assert(isscalar(availablePorts), ...
+    "Hay varios puertos disponibles (%s). Indique el puerto del KitProg.", ...
+    strjoin(availablePorts,", "));
+serialPortName = availablePorts;
 end

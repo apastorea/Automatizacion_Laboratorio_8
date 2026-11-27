@@ -1,15 +1,17 @@
-function outputFolder = capturar_monitor_lab8(label)
+function outputFolder = capturar_monitor_lab8(label,serialPortName)
 %CAPTURAR_MONITOR_LAB8 Captura sincronizada UART y Rigol en modo MONITOR.
 %   Programa esperado: Lab8, MONITOR, 600 muestras y DAC en cero.
 %   El operador debe presionar SW3/RESET después del mensaje CAPTURA_LISTA.
+%   Si SERIALPORTNAME se omite, se utiliza el único puerto serie disponible.
 
 arguments
     label (1,1) string = "monitor_lab8"
+    serialPortName (1,1) string = ""
 end
 
 expectedRows = 600;
 expectedMode = "MONITOR";
-serialPortName = "COM4";
+serialPortName = resolveSerialPort(serialPortName);
 baudRate = 57600;
 scopeTimeScale = 0.1;
 scopeCh1Scale = 0.05;
@@ -289,4 +291,21 @@ function clearInstrument(instrument)
 if ~isempty(instrument)
     clear instrument
 end
+end
+
+function serialPortName = resolveSerialPort(requestedPort)
+availablePorts = string(serialportlist("available"));
+assert(~isempty(availablePorts),"No hay puertos serie disponibles.");
+if strlength(requestedPort)>0
+    match = strcmpi(availablePorts,requestedPort);
+    assert(nnz(match)==1, ...
+        "El puerto %s no está disponible. Puertos detectados: %s.", ...
+        requestedPort,strjoin(availablePorts,", "));
+    serialPortName = availablePorts(match);
+    return
+end
+assert(isscalar(availablePorts), ...
+    "Hay varios puertos disponibles (%s). Indique el puerto del KitProg.", ...
+    strjoin(availablePorts,", "));
+serialPortName = availablePorts;
 end

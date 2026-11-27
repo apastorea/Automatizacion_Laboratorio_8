@@ -1,3 +1,7 @@
+/* Pruebas unitarias del nucleo numerico, independientes del hardware PSoC.
+ * Verifican acumulacion integral, limitacion, anti-windup y correccion del
+ * estimador con la referencia experimental seleccionada de 500 mV.
+ */
 #include <assert.h>
 #include <math.h>
 #include "PSoC_Creator_Lab8/Lab8.cydsn/lab8_control_integral.h"
@@ -16,23 +20,23 @@ int main(void)
         {1.654553831f, 5.539689791f},
         -0.223449849f,
         {-1.860494424f, 0.175152235f},
-        -0.115f, 0.107f
+        -1.000f, 1.000f
     };
     lab8_estado_t e;
     float u;
 
     lab8_reiniciar(&e, 0.0f, 0.0f);
-    u = lab8_calcular_paso(&p, &e, 0.050f, 0.0f);
+    u = lab8_calcular_paso(&p, &e, 0.500f, 0.0f);
     assert(cerca(u, 0.0f, 1.0e-7f));
-    assert(cerca(e.xi, 0.050f, 1.0e-7f));
+    assert(cerca(e.xi, 0.500f, 1.0e-7f));
 
-    u = lab8_calcular_paso(&p, &e, 0.050f, 0.0f);
-    assert(cerca(u, 0.01117249f, 1.0e-6f));
+    u = lab8_calcular_paso(&p, &e, 0.500f, 0.0f);
+    assert(cerca(u, 0.11172492f, 1.0e-6f));
 
     lab8_reiniciar(&e, 0.0f, 0.0f);
     e.xi = 10.0f;
     u = lab8_calcular_paso(&p, &e, 1.0f, 0.0f);
-    assert(cerca(u, 0.107f, 1.0e-7f));
+    assert(cerca(u, 1.000f, 1.0e-7f));
     assert(cerca(e.xi, 10.0f, 1.0e-7f));
     assert(e.saturaciones == 1u);
     assert(e.antiwindup_bloqueos == 1u);

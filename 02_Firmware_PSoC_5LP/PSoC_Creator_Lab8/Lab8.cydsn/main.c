@@ -245,7 +245,14 @@ static void volcar_uart(void)
 #else
         "# LAB8 diseno=RAPIDO polo_integral=0.30 "
 #endif
-        "referencia_mV=50 DAC_cuantizado=SI antiwindup=CONDICIONAL\r\n");
+        );
+    (void)snprintf(linea, sizeof linea,
+        "referencia_mV=%d limites_mV=[%ld,%ld] "
+        "DAC_cuantizado=SI antiwindup=CONDICIONAL\r\n",
+        (int)LAB8_REFERENCIA_MV,
+        (long)convertir_mV(LAB8_U_MIN_V),
+        (long)convertir_mV(LAB8_U_MAX_V));
+    UART_Debug_PutString(linea);
     (void)snprintf(linea, sizeof linea,
         "# LAB8 ensayo_abierto escalon_mV=%d inicio_k=%u fin_k=%u duracion_ms=%lu\r\n",
         (int)LAB8_ESCALON_ABIERTO_MV, (unsigned)LAB8_PRETRIGGER,

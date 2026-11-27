@@ -7,7 +7,7 @@ function metrics = metricas_rigol_abierto_lab8(ch1,ch2,step_mV)
 arguments
     ch1 table
     ch2 table
-    step_mV (1,1) double {mustBeMember(step_mV,[-50 50])}
+    step_mV (1,1) double {mustBeMember(step_mV,[-500 -50 50 500])}
 end
 
 assert(height(ch1)==height(ch2) && height(ch1)>=100, ...
@@ -28,8 +28,9 @@ baseline2 = median(ch2.voltage_V(edgeMask));
 signedDeviation = sign(step_mV).*(ch1.voltage_V-baseline1);
 candidateAmplitude = quantile(signedDeviation,0.90);
 responseMask = signedDeviation >= 0.45*candidateAmplitude;
-assert(candidateAmplitude>=0.020 && nnz(responseMask)>=20, ...
-    "La pantalla Rigol no contiene una meseta de al menos 20 mV.");
+minimumAmplitude_V = 0.40*abs(step_mV)/1000;
+assert(candidateAmplitude>=minimumAmplitude_V && nnz(responseMask)>=20, ...
+    "La pantalla Rigol no contiene una meseta compatible con el escalon.");
 
 response1 = median(ch1.voltage_V(responseMask));
 response2 = median(ch2.voltage_V(responseMask));

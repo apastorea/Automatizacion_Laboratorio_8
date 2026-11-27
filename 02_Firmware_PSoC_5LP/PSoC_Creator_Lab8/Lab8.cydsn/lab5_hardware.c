@@ -1,6 +1,10 @@
 /*
- * lab5_hardware.c - ADC SAR simple y salida bipolar heredados del Lab4.
- * ADC_SAR_Seq no pertenece a este laboratorio.
+ * lab5_hardware.c - Adquisicion ADC y generacion de la salida bipolar.
+ *
+ * TopDesign enruta DAC_P por Opamp_2 hacia Vout_2/P3[7] (pin fisico 37),
+ * conectado externamente a J3; DAC_N sale por Vout_3/P0[0] hacia J2. Esta
+ * polaridad produce un incremento positivo en la entrada J5 de la planta.
+ * ADC_SAR_Seq no forma parte de esta aplicacion.
  */
 #include "lab5_hardware.h"
 #include "lab5_config.h"

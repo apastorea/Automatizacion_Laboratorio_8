@@ -1,16 +1,17 @@
 % INICIALIZAR_SIMULINK_LAB8 Define los parametros del modelo Simulink.
-% Seleccione "lento"/"rapido" y "nominal"/"identificada" antes de
+% Seleccione "lento"/"rapido" y "nominal"/"identificado" antes de
 % ejecutar este script si desea reemplazar los valores predeterminados.
+% Los dos modelos representan la misma planta fisica en cascada U2.1-U2.2.
 
 if ~exist("lab8Diseno", "var")
     lab8Diseno = "lento";
 end
-if ~exist("lab8Planta", "var")
-    lab8Planta = "identificada";
+if ~exist("lab8ModeloPlanta", "var")
+    lab8ModeloPlanta = "identificado";
 end
 
 mustBeMember(lab8Diseno, ["lento", "rapido"]);
-mustBeMember(lab8Planta, ["nominal", "identificada"]);
+mustBeMember(lab8ModeloPlanta, ["nominal", "identificado"]);
 
 TsLab8 = 0.002;
 
@@ -41,7 +42,7 @@ sistemaIdentificado = c2d(ss(Fidentificada, Gidentificada, ...
     Cplanta, Dplanta), TsLab8, "zoh");
 [Aidentificada, Bidentificada, ~, ~] = ssdata(sistemaIdentificado);
 
-if lab8Planta == "nominal"
+if lab8ModeloPlanta == "nominal"
     AplantaLab8 = Anominal;
     BplantaLab8 = Bnominal;
 else
@@ -62,9 +63,9 @@ else
     KiLab8 = -0.391037235226;
 end
 
-uMinLab8 = -0.115;
-uMaxLab8 = 0.107;
-referenciaLab8 = 0.050;
+uMinLab8 = -1.000;
+uMaxLab8 = 1.000;
+referenciaLab8 = 0.500;
 inicioReferenciaLab8 = 0.064;
 finReferenciaLab8 = 0.666;
 tiempoFinalLab8 = 1.198;

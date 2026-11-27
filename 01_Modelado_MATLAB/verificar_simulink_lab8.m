@@ -6,11 +6,11 @@ clearvars;
 carpetaModelo = fileparts(mfilename("fullpath"));
 modelo = "lab8_control_integral";
 disenos = ["lento", "lento", "rapido", "rapido"];
-plantas = ["nominal", "identificada", "nominal", "identificada"];
+modelos = ["nominal", "identificado", "nominal", "identificado"];
 numeroCasos = numel(disenos);
 
 diseno = strings(numeroCasos, 1);
-planta = strings(numeroCasos, 1);
+modeloPlanta = strings(numeroCasos, 1);
 picoSalida_mV = zeros(numeroCasos, 1);
 mandoMinimo_mV = zeros(numeroCasos, 1);
 mandoMaximo_mV = zeros(numeroCasos, 1);
@@ -18,7 +18,7 @@ errorRmsRegimen_mV = zeros(numeroCasos, 1);
 
 for indice = 1:numeroCasos
     lab8Diseno = disenos(indice);
-    lab8Planta = plantas(indice);
+    lab8ModeloPlanta = modelos(indice);
     inicializar_simulink_lab8;
 
     entrada = Simulink.SimulationInput(modelo);
@@ -31,7 +31,7 @@ for indice = 1:numeroCasos
     ventanaRegimen = y.Time >= 0.550 & y.Time <= 0.660;
 
     diseno(indice) = disenos(indice);
-    planta(indice) = plantas(indice);
+    modeloPlanta(indice) = modelos(indice);
     picoSalida_mV(indice) = 1000*max(y.Data);
     mandoMinimo_mV(indice) = 1000*min(u.Data);
     mandoMaximo_mV(indice) = 1000*max(u.Data);
@@ -39,7 +39,7 @@ for indice = 1:numeroCasos
         (r.Data(ventanaRegimen) - y.Data(ventanaRegimen)).^2));
 end
 
-resumenSimulink = table(diseno, planta, picoSalida_mV, ...
+resumenSimulink = table(diseno, modeloPlanta, picoSalida_mV, ...
     mandoMinimo_mV, mandoMaximo_mV, errorRmsRegimen_mV);
 disp(resumenSimulink);
 

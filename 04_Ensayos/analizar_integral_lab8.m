@@ -49,17 +49,19 @@ innovation = double(T.innovacion_mV);
 period = double(T.intervalo_us);
 cpu = double(T.cpu_us);
 flags = uint16(double(T.flags));
-refMask = r>25;
+referenceLevel_mV = max(r);
+assert(referenceLevel_mV>0,"La captura no contiene una referencia positiva.");
+refMask = r>0.5*referenceLevel_mV;
 refIndices = find(refMask);
 steadyIndices = refIndices(end-49:end);
-postIndices = find(k>=550);
+postMask = k>=550;
 
 ySteady = median(y(steadyIndices));
 steadyError = median(r(steadyIndices)-y(steadyIndices));
 steadyErrorVector = r(steadyIndices)-y(steadyIndices);
 rmsError = sqrt(mean(steadyErrorVector.^2));
 yPeak = max(y(refMask));
-overshoot_pct = max(0,(yPeak-50)/50*100);
+overshoot_pct = max(0,(yPeak-referenceLevel_mV)/referenceLevel_mV*100);
 signedY = y(refIndices);
 i10 = find(signedY>=0.1*ySteady,1,"first");
 i90 = find(signedY>=0.9*ySteady,1,"first");
@@ -80,24 +82,21 @@ end
 fatalSamples = nnz(bitand(flags,uint16(63))~=0);
 satSamples = nnz(bitand(flags,uint16(64))~=0);
 antiwindupSamples = nnz(bitand(flags,uint16(128))~=0);
-postMedian = median(y(postIndices));
+postMedian = median(y(postMask));
 design = string(meta.detectedDesign);
 designName = lower(design);
 
 scopeTime_ms = ch1.time_s*1000;
-rawJ5 = ch1.voltage_V*1000;
 rawJ7 = ch2.voltage_V*1000;
-thresholdJ5 = 0.5*(quantile(rawJ5,0.50)+quantile(rawJ5,0.90));
 thresholdJ7 = 0.5*(quantile(rawJ7,0.50)+quantile(rawJ7,0.90));
-baseJ5 = median(rawJ5(rawJ5<thresholdJ5));
 baseJ7 = median(rawJ7(rawJ7<thresholdJ7));
 plateauJ7 = median(rawJ7(rawJ7>=thresholdJ7));
-j5 = smoothdata(rawJ5-baseJ5,"movmean",11);
 j7 = smoothdata(rawJ7-baseJ7,"movmean",11);
 scopeDelta_mV = plateauJ7-baseJ7;
 scopeReturn_mV = median(rawJ7(end-max(20,floor(0.15*numel(rawJ7)))+1:end))-baseJ7;
-scopeValid = scopeDelta_mV>=20 && scopeDelta_mV<=120 && ...
-    abs(scopeReturn_mV)<=30;
+scopeValid = scopeDelta_mV>=0.75*referenceLevel_mV && ...
+    scopeDelta_mV<=1.25*referenceLevel_mV && ...
+    abs(scopeReturn_mV)<=0.10*referenceLevel_mV;
 edgeIndex = find(j7>=0.5*scopeDelta_mV,1,"first");
 if ~isempty(edgeIndex)
     scopeTime_ms = scopeTime_ms-scopeTime_ms(edgeIndex);
@@ -141,8 +140,8 @@ ax2 = nexttile(layout);
 hold(ax2,"on");
 plot(ax2,time_ms,uNominal,LineWidth=0.9,Color=[0.75 0.18 0.14], ...
     DisplayName="Mando nominal - UART");
-plot(ax2,scopeTime_ms,j5,LineWidth=1.0,Color=[0.86 0.62 0.05], ...
-    DisplayName="J5 - Rigol");
+plot(ax2,time_ms,uRequested,"--",LineWidth=0.9,Color=[0.86 0.62 0.05], ...
+    DisplayName="Mando solicitado - UART");
 hold(ax2,"off");
 xlabel(ax2,"Tiempo relativo al escalon (ms)");
 ylabel(ax2,"Mando (mV)");

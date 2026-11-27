@@ -17,17 +17,17 @@ Ts=0.002;                  % 2 ms; 500 muestras/s
 N=600;                     % 1.2 s de simulacion
 t=(0:N-1)'*Ts;
 r=zeros(N,1);
-r(33:333)=0.050;           % Pulso 50 mV desde t=64 hasta t=664 ms
+r(33:333)=0.500;           % Pulso 500 mV desde t=64 hasta t=664 ms
 polos_dominantes=[0.80+0.25i, 0.80-0.25i];
 polos_integrales=[0.60 0.30];          % Lento / rapido
 polos_observador=[0.20+0.10i, 0.20-0.10i]; % E2 actual
 
-lim.u_min=-0.115;          % limite previo a cuantizacion (V)
-lim.u_max=+0.107;
+lim.u_min=-1.000;          % limite previo a cuantizacion (V)
+lim.u_max=+1.000;
 lim.q_pos=0.015370448;     % V/codigo, rama positiva del modelo
 lim.q_neg=0.010560423;
-lim.cod_pos=7;             % 107.593 mV
-lim.cod_neg=11;            % -116.165 mV
+lim.cod_pos=65;            % 999.079 mV
+lim.cod_neg=95;            % -1003.240 mV
 lim.antiwindup=true;
 
 %% 2. Modelo continuo de la planta nominal: montaje existente
@@ -55,8 +55,8 @@ Gid=[-gananciaEtapa1/tau1;0];
 assert(rank(ctrb(Aid,Bid))==2,'Planta identificada no controlable.');
 
 %% 4. Modelo identificado adoptado para el diseno
-% Recomendacion docente: sintetizar controlador y estimador con el modelo
-% que mejor representa la planta. El nominal queda como caso de incertidumbre.
+% La sintesis utiliza la representacion que mejor reproduce la planta fisica.
+% El modelo nominal de esa misma planta queda como caso de incertidumbre.
 Ad=Aid; Bd=Bid;
 
 %% 5. Estimador ACTUAL E2, disenado con el modelo identificado
@@ -85,7 +85,7 @@ fprintf('Polos del observador: ');disp(pobs.');
 resultados=table();
 curvas=cell(2,2);
 nombres_diseno={'integral_lento','integral_rapido'};
-nombres_planta={'nominal','identificada'};
+nombres_modelo={'nominal','identificado'};
 
 carpeta=fileparts(mfilename('fullpath'));
 salida=fullfile(carpeta,'..','05_Resultados');
@@ -120,16 +120,16 @@ for i=1:2
         rho=max(abs(eig(M)));
         assert(rho<1,sprintf(['Caso %s / %s: ', ...
             'lazo aumentado lineal inestable (rho=%.5f).'], ...
-            nombres_diseno{i},nombres_planta{j},rho));
+            nombres_diseno{i},nombres_modelo{j},rho));
 
         S=simular_integral(Ap,Bp,Ad,Bd,C,Lactual,Kx,Ki,r,lim);
         m=metricas_integral(S,t,r,33,333,Ts);
         etiqueta=string(nombres_diseno{i});
-        planta=string(nombres_planta{j});
-        fila=table(etiqueta,planta,pi,rho, ...
+        modelo=string(nombres_modelo{j});
+        fila=table(etiqueta,modelo,pi,rho, ...
           m.tr_ms,m.ts_ms,m.Mp_pct,m.ess_mV, ...
           m.u_min_mV,m.u_max_mV,m.saturaciones, ...
-          'VariableNames',{'diseno','planta','polo_integral', ...
+          'VariableNames',{'diseno','modelo','polo_integral', ...
           'rho_lineal','tr_ms','ts_ms','Mp_pct','ess_mV', ...
           'u_min_mV','u_max_mV','saturaciones'});
         resultados=[resultados;fila]; %#ok<AGROW>
@@ -138,7 +138,7 @@ for i=1:2
         tablaMuestras=table(t,r,S.y,S.u,S.u_solicitada,S.xi, ...
          'VariableNames',{'t_s','r_V','y_V','u_aplicado_V', ...
                           'u_solicitado_V','xi_integral_V'});
-        nombre=sprintf('%s_%s.csv',nombres_diseno{i},nombres_planta{j});
+        nombre=sprintf('%s_%s.csv',nombres_diseno{i},nombres_modelo{j});
         writetable(tablaMuestras,fullfile(salida,nombre));
     end
 end
@@ -148,9 +148,9 @@ disp('RESUMEN DE SIMULACION (DAC cuantizado, SIN ruido):');
 disp(resultados);
 writetable(resultados,fullfile(salida,'resumen_integral_lab8.csv'));
 
-%% 6. Graficas reproducibles: comparar los dos diseños por planta
+%% 6. Graficas reproducibles: comparar los dos diseños por modelo
 for j=1:2
-    fig=figure('Color','w','Name',['Integral / ' nombres_planta{j}]);
+    fig=figure('Color','w','Name',['Integral / ' nombres_modelo{j}]);
     tiledlayout(2,1,'TileSpacing','compact');
 
     nexttile;hold on;
@@ -158,7 +158,7 @@ for j=1:2
     stairs(t*1000,curvas{1,j}.y*1000,'LineWidth',1.2);
     stairs(t*1000,curvas{2,j}.y*1000,'LineWidth',1.2);
     xlim([0 1200]);grid on;
-    title(['Respuesta temporal — planta ' nombres_planta{j}]);
+    title(['Respuesta temporal — modelo ' nombres_modelo{j}]);
     ylabel('Salida y [mV]');
     legend('Referencia','Integral lento (0.6)','Integral rapido (0.3)', ...
            'Location','best');
@@ -173,7 +173,7 @@ for j=1:2
     legend('Integral lento (0.6)','Integral rapido (0.3)', ...
            'Location','best');
 
-    ruta=fullfile(figdir,['comparacion_integral_' nombres_planta{j} '.png']);
+    ruta=fullfile(figdir,['comparacion_integral_' nombres_modelo{j} '.png']);
     exportgraphics(fig,ruta,'Resolution',220);
 end
 fprintf('\nCSV y graficas de SIMULACION: %s\n',salida);

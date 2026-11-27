@@ -45,24 +45,33 @@
 #define LAB8_FIN_REFERENCIA          (333u)
 #define LAB8_FIN_ESCALON_ABIERTO     (128u)
 #define LAB8_INICIO_MS               (3000u)
-/* Ensayo bipolar de verificacion. Mantener el valor entero en mV para que
- * el preprocesador pueda impedir por compilacion pulsos mayores a 50 mV. */
-#define LAB8_ESCALON_ABIERTO_MV      (50)
+/* La amplitud de 500 mV fue seleccionada mediante un barrido previo: para
+ * ambos controladores, el modelo identificado conserva al menos 20 % de
+ * margen respecto del limite de +/-1 V. El valor entero permite aplicar
+ * comprobaciones de seguridad durante la compilacion. */
+#define LAB8_ESCALON_ABIERTO_MV      (500)
 #define LAB8_ESCALON_ABIERTO_V       ((float)LAB8_ESCALON_ABIERTO_MV/1000.0f)
-#define LAB8_REFERENCIA_V            (0.050f)
+#define LAB8_REFERENCIA_MV           (500)
+#define LAB8_REFERENCIA_V            ((float)LAB8_REFERENCIA_MV/1000.0f)
 
 #if LAB8_ESCALON_ABIERTO_MV == 0 || \
-    LAB8_ESCALON_ABIERTO_MV > 50 || LAB8_ESCALON_ABIERTO_MV < -50
-#error El escalon abierto debe ser no nulo y estar entre -50 mV y +50 mV.
+    LAB8_ESCALON_ABIERTO_MV > 500 || LAB8_ESCALON_ABIERTO_MV < -500
+#error El escalon abierto debe ser no nulo y estar entre -500 mV y +500 mV.
+#endif
+#if LAB8_REFERENCIA_MV <= 0 || LAB8_REFERENCIA_MV > 500
+#error La referencia cerrada debe estar entre 1 mV y 500 mV.
 #endif
 #if LAB8_FIN_ESCALON_ABIERTO <= LAB8_PRETRIGGER
 #error La ventana del escalon abierto es invalida.
 #endif
 
-/* Limites de simulacion precuantizacion. Revalidar en el montaje. */
-#define LAB8_U_MIN_V                 (-0.115f)
-#define LAB8_U_MAX_V                 (0.107f)
-#define LAB8_U_LIMITE_FISICO_V       (0.120f)
-#define LAB8_Y_FALLO_V               (0.500f)
+/* La HAL limita el mando solicitado a +/-1 V. LAB8_U_LIMITE_FISICO_V
+ * contempla el redondeo del DAC negativo (aprox. -1.003 V a codigo 95).
+ * El umbral de salida admite el sobrepasamiento previsto para 500 mV, pero
+ * detiene la adquisicion ante una excursion incompatible con el modelo. */
+#define LAB8_U_MIN_V                 (-1.000f)
+#define LAB8_U_MAX_V                 (1.000f)
+#define LAB8_U_LIMITE_FISICO_V       (1.020f)
+#define LAB8_Y_FALLO_V               (0.750f)
 
 #endif
